@@ -6,7 +6,7 @@ This repo uses a modern Next.js release with breaking changes from older version
 
 ## Source Of Truth
 
-- Read [CLAUDE.md](/Users/tonyc/src/4urhealth/CLAUDE.md:1) before making substantial changes.
+- Read this file first before making substantial changes.
 - Use [ARCHITECTURE.md](/Users/tonyc/src/4urhealth/ARCHITECTURE.md:1) for deeper rationale and request/data-flow details.
 - If these docs conflict with memory, trust the repo docs.
 
@@ -34,6 +34,8 @@ This repo uses a modern Next.js release with breaking changes from older version
 - Runtime uses the pooled `DATABASE_URL`.
 - Migrations use `DATABASE_URL_UNPOOLED`.
 - Be careful with Neon driver choices and transaction support. The app depends on transactions in onboarding and meal flows.
+- Never use `pnpm db:push` for production changes. Generate reviewed SQL migrations with `pnpm db:generate`, then apply them with `pnpm db:migrate`.
+- For risky schema changes, prefer a two-phase migration and preserve backward compatibility during rollout.
 
 ## Deployment Notes
 

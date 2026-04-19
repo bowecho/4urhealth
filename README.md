@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 4urhealth
+
+Personal nutrition and weight tracker built with Next.js, Better Auth, Drizzle, and Neon Postgres.
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+```
+
+Create a local env file before running the app. This repo expects:
+
+- `DATABASE_URL` for runtime queries
+- `DATABASE_URL_UNPOOLED` for Drizzle migrations
+- `BETTER_AUTH_SECRET` for Better Auth
+- `BETTER_AUTH_URL` or `NEXT_PUBLIC_APP_URL` for the canonical app URL
+
+If this repo is linked to Vercel, the easiest path is to pull env vars into `.env.local` with the Vercel CLI.
+
+Then run the development server:
+
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Core Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm dev
+pnpm start
+pnpm typecheck
+pnpm lint
+pnpm test:run
+pnpm build
+```
 
-## Learn More
+## Database Workflow
 
-To learn more about Next.js, take a look at the following resources:
+Use versioned Drizzle migrations for schema changes. Do not use direct schema push against production.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm db:generate
+pnpm db:migrate
+pnpm db:studio
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The production-safe migration process is documented in [DB_MIGRATIONS.md](/Users/tonyc/src/4urhealth/DB_MIGRATIONS.md:1).
 
-## Deploy on Vercel
+`pnpm db:push` is intentionally blocked as a guardrail. If you are working against a disposable database and truly want a direct sync, use:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm db:push:unsafe
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Docs
+
+- [AGENTS.md](/Users/tonyc/src/4urhealth/AGENTS.md:1) for project conventions and working rules
+- [ARCHITECTURE.md](/Users/tonyc/src/4urhealth/ARCHITECTURE.md:1) for system design and data flow
+- [DB_MIGRATIONS.md](/Users/tonyc/src/4urhealth/DB_MIGRATIONS.md:1) for the production migration workflow
+
+## Deployment
+
+Pushes to `main` deploy to Vercel production. Preview deployments are created for non-`main` branches.
+
+The production build uses:
+
+```bash
+pnpm build
+```
+
+which maps to `next build --webpack` in this repo. Do not swap that to Turbopack without verifying the PWA build path first.
+
+For database changes in production:
+
+1. generate the migration
+2. review the SQL
+3. apply it with `pnpm db:migrate`
+4. then deploy the app

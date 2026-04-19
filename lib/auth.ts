@@ -35,7 +35,9 @@ export const auth = betterAuth({
 	session: {
 		expiresIn: 60 * 60 * 24 * 30,
 		updateAge: 60 * 60 * 24,
-		cookieCache: { enabled: true, maxAge: 5 * 60 },
+		// Cookie cache disabled: direct DB writes (e.g. onboardedAt updates)
+		// need to be reflected on the next request without a 5-minute lag.
+		cookieCache: { enabled: false },
 	},
 	advanced: {
 		useSecureCookies: process.env.NODE_ENV === "production",

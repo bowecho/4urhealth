@@ -9,6 +9,7 @@ const LINKS = [
 	{ href: "/foods", label: "Foods" },
 	{ href: "/meals", label: "Meals" },
 	{ href: "/stats", label: "Stats" },
+	{ href: "/settings", label: "Settings" },
 ];
 
 export function AppNav() {

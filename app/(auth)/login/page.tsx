@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth-forms";
 
@@ -10,13 +9,7 @@ export default function LoginPage() {
 				<LoginForm />
 			</Suspense>
 			<p className="mt-4 text-sm text-zinc-500">
-				Need an account?{" "}
-				<Link
-					href="/signup"
-					className="font-medium text-zinc-900 underline dark:text-zinc-100"
-				>
-					Sign up
-				</Link>
+				Account creation is disabled on this deployment.
 			</p>
 		</div>
 	);

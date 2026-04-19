@@ -9,10 +9,17 @@ const INPUT =
 const BUTTON =
 	"w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200";
 
+function sanitizeNextPath(next: string | null): string {
+	if (!next) return "/";
+	if (!next.startsWith("/")) return "/";
+	if (next.startsWith("//")) return "/";
+	return next;
+}
+
 export function LoginForm() {
 	const router = useRouter();
 	const params = useSearchParams();
-	const next = params.get("next") || "/";
+	const next = sanitizeNextPath(params.get("next"));
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");

@@ -43,8 +43,24 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		autoSignIn: true,
+		disableSignUp: true,
 		minPasswordLength: 10,
 		requireEmailVerification: false,
+	},
+	rateLimit: {
+		enabled: true,
+		window: 60,
+		max: 10,
+		customRules: {
+			"/sign-in/email": {
+				window: 300,
+				max: 5,
+			},
+			"/sign-up/email": {
+				window: 3600,
+				max: 1,
+			},
+		},
 	},
 	user: {
 		additionalFields: {
@@ -72,6 +88,9 @@ export const auth = betterAuth({
 	advanced: {
 		useSecureCookies: process.env.NODE_ENV === "production",
 		trustedProxyHeaders: true,
+		ipAddress: {
+			ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
+		},
 	},
 	plugins: [nextCookies()],
 });

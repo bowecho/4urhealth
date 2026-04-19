@@ -6,7 +6,6 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { getSession } from "@/lib/auth-server";
 import {
 	resolveThemePreference,
-	THEME_BOOTSTRAP_SCRIPT,
 	THEME_COLORS,
 	THEME_COOKIE_NAME,
 } from "@/lib/theme";
@@ -58,13 +57,14 @@ export default async function RootLayout({
 				resolvedTheme === "dark" ? " dark" : ""
 			}`}
 			data-theme-preference={resolvedTheme ?? undefined}
-			style={resolvedTheme ? { colorScheme: resolvedTheme } : undefined}
 			suppressHydrationWarning
 		>
 			<body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-				<Script id="theme-bootstrap" strategy="beforeInteractive">
-					{THEME_BOOTSTRAP_SCRIPT}
-				</Script>
+				<Script
+					id="theme-bootstrap"
+					src="/theme-bootstrap.js"
+					strategy="beforeInteractive"
+				/>
 				<ServiceWorkerRegister />
 				{children}
 			</body>

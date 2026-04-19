@@ -6,6 +6,14 @@
 	--foreground: #18181b;
 }
 
+html[data-theme-preference="light"] {
+	color-scheme: light;
+}
+
+html[data-theme-preference="dark"] {
+	color-scheme: dark;
+}
+
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);

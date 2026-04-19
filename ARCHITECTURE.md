@@ -19,7 +19,7 @@ If you only read one section, read ["The mental model"](#the-mental-model) below
     - [Auth: Better Auth](#auth-better-auth)
     - [ORM: Drizzle](#orm-drizzle)
     - [Validation: Zod](#validation-zod)
-    - [Forms: react-hook-form](#forms-react-hook-form)
+    - [Forms: React State + Server Actions](#forms-react-state--server-actions)
     - [Charts: Recharts](#charts-recharts)
     - [Dates: date-fns and Intl](#dates-date-fns-and-intl)
     - [PWA: Serwist](#pwa-serwist)
@@ -230,13 +230,24 @@ type FoodInput = z.infer<typeof FoodSchema>;
 - `z.uuid()`.
 - `z.input<typeof S>` vs `z.infer<typeof S>` (aka `z.output`) matters when a schema transforms values — use `input` for form data entering, `infer`/`output` for the validated shape.
 
-### Forms: react-hook-form
+### Forms: React State + Server Actions
 
-**What it is:** a React forms library that avoids re-rendering on every keystroke. You register inputs with refs; the library tracks values without going through `useState`.
+**What it is:** the current app mostly uses ordinary controlled React inputs (`useState`, `useMemo`, `useTransition`) plus server actions for persistence. Validation still happens on the server with Zod.
 
-**Why:** for forms with many fields (onboarding, food dialog, settings), naïve `useState`-per-field tanks performance on slower phones. RHF + `zodResolver` wires the Zod schema directly into the form's validation.
+**How it works in this codebase:**
+- Server-rendered pages load the data and hand it to small client components.
+- Client form components keep local draft state in React and submit to a `"use server"` action.
+- The action parses the input with Zod, writes through Drizzle, and calls `revalidatePath(...)` so the next render is fresh.
 
-We use it in the heavier forms (onboarding, food editor, saved-meal builder). Simpler one-off forms just use native `<form>` + server actions with no extra client JS.
+**Where that shows up:**
+- Onboarding: [components/onboarding-form.tsx](/Users/tonyc/src/4urhealth/components/onboarding-form.tsx:1)
+- Food editor: [components/food-dialog.tsx](/Users/tonyc/src/4urhealth/components/food-dialog.tsx:1)
+- Saved meal builder: [components/saved-meal-builder.tsx](/Users/tonyc/src/4urhealth/components/saved-meal-builder.tsx:1)
+- Add-to-meal flow: [components/add-meal-item-dialog.tsx](/Users/tonyc/src/4urhealth/components/add-meal-item-dialog.tsx:1)
+
+**Implementation note:** these modal flows used to rely on the native `<dialog>` API and `showModal()`. We replaced them with controlled overlay modals because the native dialog lifecycle was unstable across our browser testing path.
+
+`react-hook-form` is installed but not currently used by the live forms.
 
 ### Charts: Recharts
 

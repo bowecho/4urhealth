@@ -36,6 +36,7 @@ export default async function SettingsPage() {
 					targetFatG: profile.targetFatG,
 					targetCarbsG: profile.targetCarbsG,
 					timezone: profile.timezone,
+					themePreference: profile.themePreference,
 				}}
 			/>
 		</main>

@@ -17,6 +17,10 @@ export const activityLevelEnum = pgEnum("activity_level", [
 	"active",
 	"very_active",
 ]);
+export const themePreferenceEnum = pgEnum("theme_preference", [
+	"light",
+	"dark",
+]);
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -45,6 +49,7 @@ export const user = pgTable("user", {
 	targetFatG: integer("target_fat_g"),
 	targetCarbsG: integer("target_carbs_g"),
 	timezone: text("timezone"),
+	themePreference: themePreferenceEnum("theme_preference"),
 	onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
 });
 

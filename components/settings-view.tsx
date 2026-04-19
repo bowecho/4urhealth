@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
 	type ImportSummary,
 	importDataAction,
@@ -14,6 +14,8 @@ type ActivityLevel =
 	| "active"
 	| "very_active";
 
+type ThemePreference = "light" | "dark";
+
 type Profile = {
 	name: string;
 	email: string;
@@ -27,6 +29,7 @@ type Profile = {
 	targetFatG: number | null;
 	targetCarbsG: number | null;
 	timezone: string | null;
+	themePreference: ThemePreference | null;
 };
 
 export function SettingsView({ profile }: { profile: Profile }) {
@@ -51,15 +54,31 @@ export function SettingsView({ profile }: { profile: Profile }) {
 	const [timezone, setTimezone] = useState(
 		profile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
+	const [themePreference, setThemePreference] =
+		useState<ThemePreference | null>(profile.themePreference);
+	const [systemThemePreference, setSystemThemePreference] =
+		useState<ThemePreference>("dark");
 	const [saveMsg, setSaveMsg] = useState<string | null>(null);
 	const [saveErr, setSaveErr] = useState<string | null>(null);
 	const [saving, startSave] = useTransition();
+
+	useEffect(() => {
+		const media = window.matchMedia("(prefers-color-scheme: dark)");
+		const update = () => {
+			setSystemThemePreference(media.matches ? "dark" : "light");
+		};
+		update();
+		media.addEventListener("change", update);
+		return () => media.removeEventListener("change", update);
+	}, []);
 
 	function handleSave() {
 		setSaveMsg(null);
 		setSaveErr(null);
 		startSave(async () => {
 			try {
+				const resolvedThemePreference =
+					themePreference ?? systemThemePreference;
 				await saveProfileAction({
 					name,
 					sex,
@@ -72,6 +91,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 					targetFatG,
 					targetCarbsG,
 					timezone,
+					themePreference: resolvedThemePreference,
 				});
 				setSaveMsg("Saved.");
 			} catch (err) {
@@ -238,6 +258,45 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						/>
 					</Field>
 				</div>
+			</section>
+
+			<section className="space-y-4">
+				<div>
+					<h2 className="text-lg font-semibold">Theme</h2>
+					<p className="text-xs text-zinc-500">
+						Choose how the app should look the next time you come back.
+					</p>
+				</div>
+				<div className="inline-flex rounded-lg border border-zinc-300 dark:border-zinc-700 p-1 gap-1">
+					{(["light", "dark"] as const).map((option) => {
+						const active =
+							(themePreference ?? systemThemePreference) === option;
+						return (
+							<button
+								key={option}
+								type="button"
+								onClick={() => setThemePreference(option)}
+								className={`rounded-md px-3 py-2 text-sm font-medium capitalize ${
+									active
+										? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+										: "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+								}`}
+								aria-pressed={active}
+							>
+								{option}
+							</button>
+						);
+					})}
+				</div>
+				{profile.themePreference ? null : (
+					<p className="text-xs text-zinc-500">
+						No saved preference yet. Right now this device is using{" "}
+						<span className="font-medium capitalize">
+							{systemThemePreference}
+						</span>
+						.
+					</p>
+				)}
 			</section>
 
 			<div className="flex items-center gap-3">

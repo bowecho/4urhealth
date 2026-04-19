@@ -1,6 +1,7 @@
 "use server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { db } from "@/db";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
 import { isIsoDate } from "@/lib/date";
+import { THEME_COOKIE_NAME, type ThemePreference } from "@/lib/theme";
 
 const ProfileSchema = z.object({
 	name: z.string().trim().min(1).max(100),
@@ -33,11 +35,24 @@ const ProfileSchema = z.object({
 	targetFatG: z.number().int().min(0).max(300),
 	targetCarbsG: z.number().int().min(0).max(800),
 	timezone: z.string().min(1),
+	themePreference: z.enum(["light", "dark"]),
 });
+
+async function persistThemePreferenceCookie(themePreference: ThemePreference) {
+	const cookieStore = await cookies();
+	cookieStore.set(THEME_COOKIE_NAME, themePreference, {
+		path: "/",
+		sameSite: "lax",
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		maxAge: 60 * 60 * 24 * 365,
+	});
+}
 
 export async function saveProfileAction(input: z.input<typeof ProfileSchema>) {
 	const userId = await requireUserId();
 	const parsed = ProfileSchema.parse(input);
+	await persistThemePreferenceCookie(parsed.themePreference);
 	await db
 		.update(user)
 		.set({
@@ -52,6 +67,7 @@ export async function saveProfileAction(input: z.input<typeof ProfileSchema>) {
 			targetFatG: parsed.targetFatG,
 			targetCarbsG: parsed.targetCarbsG,
 			timezone: parsed.timezone,
+			themePreference: parsed.themePreference,
 			updatedAt: new Date(),
 		})
 		.where(eq(user.id, userId));

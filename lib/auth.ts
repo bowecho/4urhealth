@@ -58,6 +58,7 @@ export const auth = betterAuth({
 			targetFatG: { type: "number", required: false, input: false },
 			targetCarbsG: { type: "number", required: false, input: false },
 			timezone: { type: "string", required: false, input: false },
+			themePreference: { type: "string", required: false, input: false },
 			onboardedAt: { type: "date", required: false, input: false },
 		},
 	},

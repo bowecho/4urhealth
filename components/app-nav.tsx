@@ -8,6 +8,7 @@ const LINKS = [
 	{ href: "/weight", label: "Weight" },
 	{ href: "/foods", label: "Foods" },
 	{ href: "/meals", label: "Meals" },
+	{ href: "/stats", label: "Stats" },
 ];
 
 export function AppNav() {

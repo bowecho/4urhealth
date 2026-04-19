@@ -24,12 +24,16 @@ describe("calcBmr (Mifflin-St Jeor)", () => {
 	it("matches a known male example (180 lb, 5'10\", 30y)", () => {
 		// 180 lb ≈ 81.65 kg, 70 in ≈ 177.8 cm
 		// 10*81.65 + 6.25*177.8 - 5*30 + 5 = 816.5 + 1111.25 - 150 + 5 = 1782.75
-		expect(calcBmr({ sex: "male", weightLbs: 180, heightIn: 70, age: 30 })).toBe(1783);
+		expect(
+			calcBmr({ sex: "male", weightLbs: 180, heightIn: 70, age: 30 }),
+		).toBe(1783);
 	});
 	it("matches a known female example (150 lb, 5'5\", 30y)", () => {
 		// 150 lb ≈ 68.04 kg, 65 in ≈ 165.1 cm
 		// 10*68.04 + 6.25*165.1 - 5*30 - 161 = 680.4 + 1031.875 - 150 - 161 = 1401.275
-		expect(calcBmr({ sex: "female", weightLbs: 150, heightIn: 65, age: 30 })).toBe(1401);
+		expect(
+			calcBmr({ sex: "female", weightLbs: 150, heightIn: 65, age: 30 }),
+		).toBe(1401);
 	});
 });
 
@@ -44,16 +48,24 @@ describe("calcTdee", () => {
 
 describe("calcTargetCalories", () => {
 	it("subtracts 500 cal/day for 1 lb/week loss", () => {
-		expect(calcTargetCalories({ tdee: 2500, weightGoalLbsPerWeek: -1 })).toBe(2000);
+		expect(calcTargetCalories({ tdee: 2500, weightGoalLbsPerWeek: -1 })).toBe(
+			2000,
+		);
 	});
 	it("subtracts 1000 cal/day for 2 lb/week loss", () => {
-		expect(calcTargetCalories({ tdee: 2500, weightGoalLbsPerWeek: -2 })).toBe(1500);
+		expect(calcTargetCalories({ tdee: 2500, weightGoalLbsPerWeek: -2 })).toBe(
+			1500,
+		);
 	});
 	it("floors at 1200", () => {
-		expect(calcTargetCalories({ tdee: 1500, weightGoalLbsPerWeek: -2 })).toBe(1200);
+		expect(calcTargetCalories({ tdee: 1500, weightGoalLbsPerWeek: -2 })).toBe(
+			1200,
+		);
 	});
 	it("handles maintenance", () => {
-		expect(calcTargetCalories({ tdee: 2200, weightGoalLbsPerWeek: 0 })).toBe(2200);
+		expect(calcTargetCalories({ tdee: 2200, weightGoalLbsPerWeek: 0 })).toBe(
+			2200,
+		);
 	});
 });
 

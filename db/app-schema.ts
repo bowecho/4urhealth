@@ -13,7 +13,12 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
-export const mealTypeEnum = pgEnum("meal_type", ["breakfast", "lunch", "dinner", "snack"]);
+export const mealTypeEnum = pgEnum("meal_type", [
+	"breakfast",
+	"lunch",
+	"dinner",
+	"snack",
+]);
 
 export const weightLog = pgTable(
 	"weight_log",
@@ -25,8 +30,12 @@ export const weightLog = pgTable(
 		date: date("date").notNull(),
 		weightLbs: numeric("weight_lbs", { precision: 5, scale: 1 }).notNull(),
 		note: text("note"),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 	},
 	(t) => [
 		unique("weight_log_user_date_unique").on(t.userId, t.date),
@@ -50,8 +59,12 @@ export const foodItem = pgTable(
 		fatG: numeric("fat_g", { precision: 6, scale: 1 }).notNull(),
 		carbsG: numeric("carbs_g", { precision: 6, scale: 1 }).notNull(),
 		archivedAt: timestamp("archived_at", { withTimezone: true }),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 	},
 	(t) => [
 		index("food_item_user_idx").on(t.userId),
@@ -70,8 +83,12 @@ export const savedMeal = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		name: text("name").notNull(),
 		archivedAt: timestamp("archived_at", { withTimezone: true }),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 	},
 	(t) => [index("saved_meal_user_idx").on(t.userId)],
 );
@@ -101,8 +118,12 @@ export const mealLog = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		date: date("date").notNull(),
 		mealType: mealTypeEnum("meal_type").notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 	},
 	(t) => [
 		unique("meal_log_user_date_type_unique").on(t.userId, t.date, t.mealType),
@@ -117,18 +138,31 @@ export const mealLogItem = pgTable(
 		mealLogId: uuid("meal_log_id")
 			.notNull()
 			.references(() => mealLog.id, { onDelete: "cascade" }),
-		foodItemId: uuid("food_item_id").references(() => foodItem.id, { onDelete: "set null" }),
+		foodItemId: uuid("food_item_id").references(() => foodItem.id, {
+			onDelete: "set null",
+		}),
 		servings: numeric("servings", { precision: 6, scale: 2 }).notNull(),
 		sortOrder: integer("sort_order").notNull().default(0),
 
 		// Snapshots so historical logs stay accurate when the source food is edited
 		nameSnapshot: text("name_snapshot").notNull(),
 		caloriesSnapshot: integer("calories_snapshot").notNull(),
-		proteinGSnapshot: numeric("protein_g_snapshot", { precision: 7, scale: 1 }).notNull(),
-		fatGSnapshot: numeric("fat_g_snapshot", { precision: 7, scale: 1 }).notNull(),
-		carbsGSnapshot: numeric("carbs_g_snapshot", { precision: 7, scale: 1 }).notNull(),
+		proteinGSnapshot: numeric("protein_g_snapshot", {
+			precision: 7,
+			scale: 1,
+		}).notNull(),
+		fatGSnapshot: numeric("fat_g_snapshot", {
+			precision: 7,
+			scale: 1,
+		}).notNull(),
+		carbsGSnapshot: numeric("carbs_g_snapshot", {
+			precision: 7,
+			scale: 1,
+		}).notNull(),
 
-		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 	},
 	(t) => [index("meal_log_item_meal_idx").on(t.mealLogId)],
 );

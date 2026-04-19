@@ -11,7 +11,10 @@ export default function LoginPage() {
 			</Suspense>
 			<p className="mt-4 text-sm text-zinc-500">
 				Need an account?{" "}
-				<Link href="/signup" className="font-medium text-zinc-900 underline dark:text-zinc-100">
+				<Link
+					href="/signup"
+					className="font-medium text-zinc-900 underline dark:text-zinc-100"
+				>
 					Sign up
 				</Link>
 			</p>

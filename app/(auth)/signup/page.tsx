@@ -8,7 +8,10 @@ export default function SignupPage() {
 			<SignupForm />
 			<p className="mt-4 text-sm text-zinc-500">
 				Already have an account?{" "}
-				<Link href="/login" className="font-medium text-zinc-900 underline dark:text-zinc-100">
+				<Link
+					href="/login"
+					className="font-medium text-zinc-900 underline dark:text-zinc-100"
+				>
 					Sign in
 				</Link>
 			</p>

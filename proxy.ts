@@ -1,12 +1,14 @@
 import { getSessionCookie } from "better-auth/cookies";
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
 
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 	const sessionCookie = getSessionCookie(request);
-	const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+	const isPublic = PUBLIC_PATHS.some(
+		(p) => pathname === p || pathname.startsWith(`${p}/`),
+	);
 
 	if (!sessionCookie && !isPublic) {
 		const url = new URL("/login", request.url);
@@ -22,5 +24,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons).*)"],
+	matcher: [
+		"/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons).*)",
+	],
 };

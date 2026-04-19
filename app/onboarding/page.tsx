@@ -8,9 +8,12 @@ export default async function OnboardingPage() {
 
 	return (
 		<main className="flex-1 p-6 max-w-lg mx-auto w-full">
-			<h1 className="text-2xl font-semibold mb-1">Welcome, {session.user.name}</h1>
+			<h1 className="text-2xl font-semibold mb-1">
+				Welcome, {session.user.name}
+			</h1>
 			<p className="text-sm text-zinc-500 mb-6">
-				A few details so we can estimate your daily calorie and macro targets. You can change these any time in settings.
+				A few details so we can estimate your daily calorie and macro targets.
+				You can change these any time in settings.
 			</p>
 			<OnboardingForm />
 		</main>

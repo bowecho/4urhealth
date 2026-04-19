@@ -23,7 +23,13 @@ const WEIGHT_GOALS = [
 	{ value: 1, label: "Gain 1 lb / week" },
 ];
 
-const ACTIVITY_OPTIONS: ActivityLevel[] = ["sedentary", "light", "moderate", "active", "very_active"];
+const ACTIVITY_OPTIONS: ActivityLevel[] = [
+	"sedentary",
+	"light",
+	"moderate",
+	"active",
+	"very_active",
+];
 
 type Step = "profile" | "plan";
 
@@ -251,9 +257,12 @@ export function OnboardingForm() {
 		<form onSubmit={onFinalSubmit} className="space-y-5">
 			<div className="rounded-lg bg-zinc-100 dark:bg-zinc-900 p-4 space-y-2 text-sm">
 				<p className="text-zinc-600 dark:text-zinc-400">
-					Based on your profile: BMR {plan?.bmr ?? "—"} cal, TDEE {plan?.tdee ?? "—"} cal.
+					Based on your profile: BMR {plan?.bmr ?? "—"} cal, TDEE{" "}
+					{plan?.tdee ?? "—"} cal.
 				</p>
-				<p className="text-zinc-600 dark:text-zinc-400">Edit any number to override the defaults.</p>
+				<p className="text-zinc-600 dark:text-zinc-400">
+					Edit any number to override the defaults.
+				</p>
 			</div>
 
 			<div>

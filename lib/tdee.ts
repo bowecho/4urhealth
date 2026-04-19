@@ -1,5 +1,10 @@
 export type Sex = "male" | "female";
-export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
+export type ActivityLevel =
+	| "sedentary"
+	| "light"
+	| "moderate"
+	| "active"
+	| "very_active";
 
 const LB_TO_KG = 0.45359237;
 const IN_TO_CM = 2.54;
@@ -41,7 +46,10 @@ export function calcBmr(opts: {
 	return Math.round(base + offset);
 }
 
-export function calcTdee(opts: { bmr: number; activityLevel: ActivityLevel }): number {
+export function calcTdee(opts: {
+	bmr: number;
+	activityLevel: ActivityLevel;
+}): number {
 	return Math.round(opts.bmr * ACTIVITY_MULTIPLIERS[opts.activityLevel]);
 }
 
@@ -52,7 +60,8 @@ export function calcTargetCalories(opts: {
 	tdee: number;
 	weightGoalLbsPerWeek: number;
 }): number {
-	const dailyAdjustment = (opts.weightGoalLbsPerWeek * CAL_PER_LB_FAT_PER_WEEK) / 7;
+	const dailyAdjustment =
+		(opts.weightGoalLbsPerWeek * CAL_PER_LB_FAT_PER_WEEK) / 7;
 	return Math.max(1200, Math.round(opts.tdee + dailyAdjustment));
 }
 
@@ -67,7 +76,10 @@ export function calcDefaultMacros(opts: {
 	const proteinG = Math.round(opts.weightLbs * 0.8);
 	const fatG = Math.round(opts.weightLbs * 0.3);
 	const caloriesFromPF = proteinG * 4 + fatG * 9;
-	const carbsG = Math.max(0, Math.round((opts.targetCalories - caloriesFromPF) / 4));
+	const carbsG = Math.max(
+		0,
+		Math.round((opts.targetCalories - caloriesFromPF) / 4),
+	);
 	return { proteinG, fatG, carbsG };
 }
 
@@ -81,12 +93,20 @@ export function calcPlan(opts: {
 	today?: Date;
 }) {
 	const age = calcAge(opts.dateOfBirth, opts.today);
-	const bmr = calcBmr({ sex: opts.sex, weightLbs: opts.weightLbs, heightIn: opts.heightIn, age });
+	const bmr = calcBmr({
+		sex: opts.sex,
+		weightLbs: opts.weightLbs,
+		heightIn: opts.heightIn,
+		age,
+	});
 	const tdee = calcTdee({ bmr, activityLevel: opts.activityLevel });
 	const targetCalories = calcTargetCalories({
 		tdee,
 		weightGoalLbsPerWeek: opts.weightGoalLbsPerWeek,
 	});
-	const macros = calcDefaultMacros({ weightLbs: opts.weightLbs, targetCalories });
+	const macros = calcDefaultMacros({
+		weightLbs: opts.weightLbs,
+		targetCalories,
+	});
 	return { age, bmr, tdee, targetCalories, ...macros };
 }

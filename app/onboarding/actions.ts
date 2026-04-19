@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { user, weightLog } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
+import { todayInTz } from "@/lib/date";
 
 const OnboardingSchema = z.object({
 	sex: z.enum(["male", "female"]),
@@ -33,7 +34,7 @@ export async function saveOnboardingAction(input: OnboardingInput) {
 	const userId = await requireUserId();
 	const parsed = OnboardingSchema.parse(input);
 	const now = new Date();
-	const today = new Date().toISOString().slice(0, 10);
+	const today = todayInTz(parsed.timezone, now);
 
 	await db.transaction(async (tx) => {
 		await tx

@@ -3,13 +3,42 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 
-const trustedOrigins = [
-	process.env.NEXT_PUBLIC_APP_URL,
-	process.env.BETTER_AUTH_URL,
-	process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
-].filter((o): o is string => Boolean(o));
+function extractHost(value: string): string | null {
+	try {
+		return new URL(value).host;
+	} catch {
+		return value;
+	}
+}
+
+const canonicalAppUrl =
+	process.env.BETTER_AUTH_URL ||
+	process.env.NEXT_PUBLIC_APP_URL ||
+	(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+	"http://localhost:3000";
+
+const allowedHosts = Array.from(
+	new Set(
+		[
+			"localhost:3000",
+			"127.0.0.1:3000",
+			process.env.BETTER_AUTH_URL,
+			process.env.NEXT_PUBLIC_APP_URL,
+			process.env.VERCEL_URL,
+			process.env.VERCEL_PROJECT_PRODUCTION_URL,
+		]
+			.filter((value): value is string => Boolean(value))
+			.map(extractHost)
+			.filter((value): value is string => Boolean(value)),
+	),
+);
 
 export const auth = betterAuth({
+	baseURL: {
+		allowedHosts,
+		protocol: canonicalAppUrl.startsWith("http://localhost") ? "http" : "https",
+		fallback: canonicalAppUrl,
+	},
 	database: drizzleAdapter(db, { provider: "pg" }),
 	emailAndPassword: {
 		enabled: true,
@@ -41,8 +70,8 @@ export const auth = betterAuth({
 	},
 	advanced: {
 		useSecureCookies: process.env.NODE_ENV === "production",
+		trustedProxyHeaders: true,
 	},
-	trustedOrigins,
 	plugins: [nextCookies()],
 });
 

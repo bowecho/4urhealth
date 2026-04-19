@@ -4,14 +4,14 @@ export function isIsoDate(s: string): boolean {
 	return DATE_RE.test(s);
 }
 
-export function todayInTz(timezone: string): string {
+export function todayInTz(timezone: string, now: Date = new Date()): string {
 	const fmt = new Intl.DateTimeFormat("en-CA", {
 		timeZone: timezone,
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
 	});
-	return fmt.format(new Date());
+	return fmt.format(now);
 }
 
 export function addDays(date: string, delta: number): string {

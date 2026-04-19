@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, formatFriendlyDate, isIsoDate } from "./date";
+import { addDays, formatFriendlyDate, isIsoDate, todayInTz } from "./date";
 
 describe("isIsoDate", () => {
 	it("accepts YYYY-MM-DD", () => {
@@ -24,6 +24,14 @@ describe("addDays", () => {
 	});
 	it("crosses years", () => {
 		expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+	});
+});
+
+describe("todayInTz", () => {
+	it("uses the provided timezone instead of UTC", () => {
+		const now = new Date("2026-04-19T00:30:00.000Z");
+		expect(todayInTz("America/Chicago", now)).toBe("2026-04-18");
+		expect(todayInTz("Asia/Tokyo", now)).toBe("2026-04-19");
 	});
 });
 

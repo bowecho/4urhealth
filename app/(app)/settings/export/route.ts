@@ -17,6 +17,7 @@ export async function GET() {
 		await Promise.all([
 			db
 				.select({
+					id: foodItem.id,
 					name: foodItem.name,
 					brand: foodItem.brand,
 					servingSize: foodItem.servingSize,
@@ -47,6 +48,8 @@ export async function GET() {
 			db
 				.select({
 					savedMealId: savedMealItem.savedMealId,
+					foodId: foodItem.id,
+					foodBrand: foodItem.brand,
 					servings: savedMealItem.servings,
 					sortOrder: savedMealItem.sortOrder,
 					foodName: foodItem.name,
@@ -68,6 +71,7 @@ export async function GET() {
 			db
 				.select({
 					mealLogId: mealLogItem.mealLogId,
+					foodId: mealLogItem.foodItemId,
 					servings: mealLogItem.servings,
 					sortOrder: mealLogItem.sortOrder,
 					nameSnapshot: mealLogItem.nameSnapshot,
@@ -84,11 +88,21 @@ export async function GET() {
 
 	const smItemsByMeal = new Map<
 		string,
-		{ foodName: string; servings: number }[]
+		{
+			foodId: string;
+			foodName: string;
+			foodBrand: string | null;
+			servings: number;
+		}[]
 	>();
 	for (const r of smItemRows) {
 		const list = smItemsByMeal.get(r.savedMealId) ?? [];
-		list.push({ foodName: r.foodName, servings: Number(r.servings) });
+		list.push({
+			foodId: r.foodId,
+			foodName: r.foodName,
+			foodBrand: r.foodBrand,
+			servings: Number(r.servings),
+		});
 		smItemsByMeal.set(r.savedMealId, list);
 	}
 	const savedMeals = smRows.map((m) => ({
@@ -100,6 +114,7 @@ export async function GET() {
 		string,
 		{
 			foodName: string;
+			foodId: string | null;
 			servings: number;
 			calories: number;
 			proteinG: number;
@@ -110,6 +125,7 @@ export async function GET() {
 	for (const r of logItemRows) {
 		const list = logItemsByLog.get(r.mealLogId) ?? [];
 		list.push({
+			foodId: r.foodId,
 			foodName: r.nameSnapshot,
 			servings: Number(r.servings),
 			calories: r.caloriesSnapshot,
@@ -128,6 +144,7 @@ export async function GET() {
 	const payload = {
 		exportedAt: new Date().toISOString(),
 		foods: foods.map((f) => ({
+			id: f.id,
 			name: f.name,
 			brand: f.brand,
 			servingSize: Number(f.servingSize),

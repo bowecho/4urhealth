@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { addMealItemAction } from "@/app/(app)/day/actions";
 import type { FoodOption } from "@/components/day-view";
 
@@ -18,7 +18,6 @@ export function AddMealItemDialog({
 	foods: FoodOption[];
 	onClose: () => void;
 }) {
-	const ref = useRef<HTMLDialogElement>(null);
 	const [query, setQuery] = useState("");
 	const [selected, setSelected] = useState<FoodOption | null>(null);
 	const [servings, setServings] = useState(1);
@@ -26,13 +25,13 @@ export function AddMealItemDialog({
 	const [pending, startTransition] = useTransition();
 
 	useEffect(() => {
-		const el = ref.current;
-		if (!el) return;
-		el.showModal();
-		return () => {
-			if (el.open) el.close();
-		};
-	}, []);
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") onClose();
+		}
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [onClose]);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -65,12 +64,14 @@ export function AddMealItemDialog({
 	}
 
 	return (
-		<dialog
-			ref={ref}
-			onClose={onClose}
-			className="rounded-lg p-0 backdrop:bg-black/40 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 w-[95vw] max-w-md"
-		>
-			<div className="p-5 space-y-4">
+		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				className="absolute inset-0 bg-black/40"
+				onClick={onClose}
+			/>
+			<div className="relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold">Add to {mealLabel}</h2>
 					<button
@@ -139,7 +140,6 @@ export function AddMealItemDialog({
 					<>
 						<input
 							type="search"
-							autoFocus
 							placeholder="Search foods…"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
@@ -174,6 +174,6 @@ export function AddMealItemDialog({
 					</>
 				)}
 			</div>
-		</dialog>
+		</div>
 	);
 }

@@ -1,5 +1,5 @@
 "use client";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import type { FoodInput } from "@/app/(app)/foods/actions";
 
 export type FoodDialogInitial = {
@@ -26,7 +26,6 @@ export function FoodDialog({
 	onSubmit: (input: FoodInput) => Promise<void>;
 	onCancel: () => void;
 }) {
-	const ref = useRef<HTMLDialogElement>(null);
 	const [name, setName] = useState(initial?.name ?? "");
 	const [brand, setBrand] = useState(initial?.brand ?? "");
 	const [servingSize, setServingSize] = useState(initial?.servingSize ?? 1);
@@ -41,13 +40,13 @@ export function FoodDialog({
 	const [submitting, setSubmitting] = useState(false);
 
 	useEffect(() => {
-		const el = ref.current;
-		if (!el) return;
-		el.showModal();
-		return () => {
-			if (el.open) el.close();
-		};
-	}, []);
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") onCancel();
+		}
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [onCancel]);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -71,12 +70,17 @@ export function FoodDialog({
 	}
 
 	return (
-		<dialog
-			ref={ref}
-			onClose={onCancel}
-			className="rounded-lg p-0 backdrop:bg-black/40 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 w-[95vw] max-w-md"
-		>
-			<form onSubmit={handleSubmit} className="p-5 space-y-4">
+		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				className="absolute inset-0 bg-black/40"
+				onClick={onCancel}
+			/>
+			<form
+				onSubmit={handleSubmit}
+				className="relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
+			>
 				<h2 className="text-lg font-semibold">
 					{initial ? "Edit food" : "New food"}
 				</h2>
@@ -89,7 +93,6 @@ export function FoodDialog({
 						id="food-name"
 						type="text"
 						required
-						autoFocus
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						className={INPUT}
@@ -223,6 +226,6 @@ export function FoodDialog({
 					</button>
 				</div>
 			</form>
-		</dialog>
+		</div>
 	);
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
 	createSavedMealAction,
 	updateSavedMealAction,
@@ -27,7 +27,6 @@ export function SavedMealBuilder({
 	initial: SavedMealDetail | null;
 	onClose: () => void;
 }) {
-	const ref = useRef<HTMLDialogElement>(null);
 	const [name, setName] = useState(initial?.name ?? "");
 	const [items, setItems] = useState<DraftItem[]>(
 		() =>
@@ -38,13 +37,13 @@ export function SavedMealBuilder({
 	const [pending, startTransition] = useTransition();
 
 	useEffect(() => {
-		const el = ref.current;
-		if (!el) return;
-		el.showModal();
-		return () => {
-			if (el.open) el.close();
-		};
-	}, []);
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") onClose();
+		}
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [onClose]);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -125,12 +124,14 @@ export function SavedMealBuilder({
 	);
 
 	return (
-		<dialog
-			ref={ref}
-			onClose={onClose}
-			className="rounded-lg p-0 backdrop:bg-black/40 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 w-[95vw] max-w-lg"
-		>
-			<div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				className="absolute inset-0 bg-black/40"
+				onClick={onClose}
+			/>
+			<div className="relative w-[95vw] max-w-lg rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4 max-h-[85vh] overflow-y-auto">
 				<h2 className="text-lg font-semibold">
 					{initial ? "Edit saved meal" : "New saved meal"}
 				</h2>
@@ -249,6 +250,6 @@ export function SavedMealBuilder({
 					</button>
 				</div>
 			</div>
-		</dialog>
+		</div>
 	);
 }

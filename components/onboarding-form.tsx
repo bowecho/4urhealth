@@ -1,4 +1,5 @@
 "use client";
+import { unstable_rethrow } from "next/navigation";
 import { type FormEvent, useMemo, useState, useTransition } from "react";
 import { saveOnboardingAction } from "@/app/onboarding/actions";
 import {
@@ -108,6 +109,7 @@ export function OnboardingForm() {
 					timezone,
 				});
 			} catch (err) {
+				unstable_rethrow(err);
 				setError(err instanceof Error ? err.message : "Failed to save");
 			}
 		});

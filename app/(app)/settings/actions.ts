@@ -60,6 +60,7 @@ export async function saveProfileAction(input: z.input<typeof ProfileSchema>) {
 }
 
 const FoodImport = z.object({
+	id: z.uuid().optional(),
 	name: z.string().trim().min(1).max(200),
 	brand: z.string().nullable().optional(),
 	servingSize: z.number().positive(),
@@ -81,7 +82,9 @@ const SavedMealImport = z.object({
 	items: z
 		.array(
 			z.object({
+				foodId: z.uuid().optional(),
 				foodName: z.string(),
+				foodBrand: z.string().nullable().optional(),
 				servings: z.number().min(0.01).max(100),
 			}),
 		)
@@ -95,6 +98,7 @@ const MealLogImport = z.object({
 	items: z
 		.array(
 			z.object({
+				foodId: z.uuid().nullable().optional(),
 				foodName: z.string(),
 				servings: z.number().min(0.01).max(100),
 				calories: z.number().int().min(0),
@@ -137,22 +141,67 @@ export async function importDataAction(
 		savedMeals: 0,
 		mealLogs: 0,
 	};
+	const importedFoodIdMap = new Map<string, string>();
+	const existingFoodMap = new Map<string, string>();
+
+	function foodLookupKey(food: {
+		name?: string;
+		brand?: string | null;
+		foodName?: string;
+		foodBrand?: string | null;
+	}) {
+		const name = food.name ?? food.foodName ?? "";
+		const brand = food.brand ?? food.foodBrand ?? "";
+		return `${name.toLowerCase()}::${brand.toLowerCase()}`;
+	}
+
+	function resolveFoodId(item: {
+		foodId?: string | null;
+		foodName: string;
+		foodBrand?: string | null;
+	}) {
+		if (item.foodId) {
+			const importedId = importedFoodIdMap.get(item.foodId);
+			if (importedId) return importedId;
+		}
+		return existingFoodMap.get(foodLookupKey(item)) ?? null;
+	}
 
 	if (data.foods?.length) {
-		await db.insert(foodItem).values(
-			data.foods.map((f) => ({
-				userId,
-				name: f.name,
-				brand: f.brand ?? null,
-				servingSize: f.servingSize.toString(),
-				servingUnit: f.servingUnit,
-				calories: f.calories,
-				proteinG: f.proteinG.toString(),
-				fatG: f.fatG.toString(),
-				carbsG: f.carbsG.toString(),
-			})),
-		);
+		const insertedFoods = await db
+			.insert(foodItem)
+			.values(
+				data.foods.map((f) => ({
+					userId,
+					name: f.name,
+					brand: f.brand ?? null,
+					servingSize: f.servingSize.toString(),
+					servingUnit: f.servingUnit,
+					calories: f.calories,
+					proteinG: f.proteinG.toString(),
+					fatG: f.fatG.toString(),
+					carbsG: f.carbsG.toString(),
+				})),
+			)
+			.returning({
+				id: foodItem.id,
+				name: foodItem.name,
+				brand: foodItem.brand,
+			});
+		for (const [index, inserted] of insertedFoods.entries()) {
+			const source = data.foods[index];
+			if (source?.id) importedFoodIdMap.set(source.id, inserted.id);
+			existingFoodMap.set(foodLookupKey(inserted), inserted.id);
+		}
 		summary.foods = data.foods.length;
+	}
+
+	const myFoods = await db
+		.select({ id: foodItem.id, name: foodItem.name, brand: foodItem.brand })
+		.from(foodItem)
+		.where(eq(foodItem.userId, userId));
+	for (const food of myFoods) {
+		existingFoodMap.set(foodLookupKey(food), food.id);
 	}
 
 	if (data.weights?.length) {
@@ -178,16 +227,9 @@ export async function importDataAction(
 	}
 
 	if (data.savedMeals?.length) {
-		const foodByName = new Map<string, string>();
-		const myFoods = await db
-			.select({ id: foodItem.id, name: foodItem.name })
-			.from(foodItem)
-			.where(eq(foodItem.userId, userId));
-		for (const f of myFoods) foodByName.set(f.name.toLowerCase(), f.id);
-
 		for (const m of data.savedMeals) {
 			const resolved = m.items.flatMap((it) => {
-				const id = foodByName.get(it.foodName.toLowerCase());
+				const id = resolveFoodId(it);
 				return id ? [{ foodItemId: id, servings: it.servings }] : [];
 			});
 			if (resolved.length === 0) continue;
@@ -210,13 +252,6 @@ export async function importDataAction(
 	}
 
 	if (data.mealLogs?.length) {
-		const foodByName = new Map<string, string>();
-		const myFoods = await db
-			.select({ id: foodItem.id, name: foodItem.name })
-			.from(foodItem)
-			.where(eq(foodItem.userId, userId));
-		for (const f of myFoods) foodByName.set(f.name.toLowerCase(), f.id);
-
 		for (const log of data.mealLogs) {
 			await db.transaction(async (tx) => {
 				const [row] = await tx
@@ -227,10 +262,11 @@ export async function importDataAction(
 						set: { updatedAt: new Date() },
 					})
 					.returning({ id: mealLog.id });
+				await tx.delete(mealLogItem).where(eq(mealLogItem.mealLogId, row.id));
 				await tx.insert(mealLogItem).values(
 					log.items.map((it, idx) => ({
 						mealLogId: row.id,
-						foodItemId: foodByName.get(it.foodName.toLowerCase()) ?? null,
+						foodItemId: resolveFoodId(it),
 						servings: it.servings.toString(),
 						sortOrder: idx,
 						nameSnapshot: it.foodName,

@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
+import { DayMealsSection } from "@/components/day-meals-section";
 import { DayTotals } from "@/components/day-totals";
-import { MealCard } from "@/components/meal-card";
 import { db } from "@/db";
 import { foodItem, mealLog, mealLogItem, user } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
@@ -158,16 +158,15 @@ export async function DayView({
 				}}
 			/>
 
-			{MEAL_TYPES.map((mt) => (
-				<MealCard
-					key={mt}
-					date={date}
-					mealType={mt}
-					label={MEAL_LABELS[mt]}
-					items={byType[mt]}
-					foods={foods}
-				/>
-			))}
+			<DayMealsSection
+				date={date}
+				foods={foods}
+				meals={MEAL_TYPES.map((mealType) => ({
+					mealType,
+					label: MEAL_LABELS[mealType],
+					items: byType[mealType],
+				}))}
+			/>
 		</main>
 	);
 }

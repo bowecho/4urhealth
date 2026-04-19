@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import { StatsView } from "@/components/stats-view";
 import { db } from "@/db";
 import { mealLog, mealLogItem, user, weightLog } from "@/db/schema";
@@ -31,10 +31,21 @@ export default async function StatsPage(props: { searchParams: Promise<SP> }) {
 	const logRows = await db
 		.select({
 			date: mealLog.date,
-			calories: mealLogItem.caloriesSnapshot,
-			proteinG: mealLogItem.proteinGSnapshot,
-			fatG: mealLogItem.fatGSnapshot,
-			carbsG: mealLogItem.carbsGSnapshot,
+			calories:
+				sql<number>`coalesce(sum(${mealLogItem.caloriesSnapshot}), 0)`.mapWith(
+					Number,
+				),
+			proteinG:
+				sql<number>`coalesce(sum(${mealLogItem.proteinGSnapshot}), 0)`.mapWith(
+					Number,
+				),
+			fatG: sql<number>`coalesce(sum(${mealLogItem.fatGSnapshot}), 0)`.mapWith(
+				Number,
+			),
+			carbsG:
+				sql<number>`coalesce(sum(${mealLogItem.carbsGSnapshot}), 0)`.mapWith(
+					Number,
+				),
 		})
 		.from(mealLogItem)
 		.innerJoin(mealLog, eq(mealLog.id, mealLogItem.mealLogId))
@@ -44,7 +55,8 @@ export default async function StatsPage(props: { searchParams: Promise<SP> }) {
 				gte(mealLog.date, start),
 				lte(mealLog.date, today),
 			),
-		);
+		)
+		.groupBy(mealLog.date);
 
 	const perDay = new Map<
 		string,
@@ -62,9 +74,9 @@ export default async function StatsPage(props: { searchParams: Promise<SP> }) {
 		const acc = perDay.get(r.date);
 		if (!acc) continue;
 		acc.calories += r.calories;
-		acc.proteinG += Number(r.proteinG);
-		acc.fatG += Number(r.fatG);
-		acc.carbsG += Number(r.carbsG);
+		acc.proteinG += r.proteinG;
+		acc.fatG += r.fatG;
+		acc.carbsG += r.carbsG;
 	}
 
 	const dailySeries = Array.from(perDay.entries()).map(([date, t]) => ({

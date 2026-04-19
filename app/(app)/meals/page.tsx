@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { MealsView, type SavedMealDetail } from "@/components/meals-view";
 import { db } from "@/db";
 import { foodItem, savedMeal, savedMealItem } from "@/db/schema";
@@ -34,7 +34,15 @@ export default async function MealsPage() {
 					})
 					.from(savedMealItem)
 					.innerJoin(foodItem, eq(foodItem.id, savedMealItem.foodItemId))
-					.where(eq(foodItem.userId, userId))
+					.where(
+						and(
+							eq(foodItem.userId, userId),
+							inArray(
+								savedMealItem.savedMealId,
+								meals.map((meal) => meal.id),
+							),
+						),
+					)
 					.orderBy(asc(savedMealItem.sortOrder));
 
 	const byMeal = new Map<string, SavedMealDetail["items"]>();

@@ -16,9 +16,9 @@ export default defineConfig({
 		{ name: "iphone-14", use: { ...devices["iPhone 14"] } },
 	],
 	webServer: {
-		command: "pnpm dev",
+		command: "PLAYWRIGHT=1 pnpm exec next dev --webpack",
 		url: "http://localhost:3000",
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: false,
 		timeout: 120_000,
 	},
 });

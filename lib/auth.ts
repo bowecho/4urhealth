@@ -2,6 +2,9 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
+import { isPlaywrightHarnessEnabled } from "@/lib/runtime-flags";
+
+const isPlaywrightHarness = isPlaywrightHarnessEnabled();
 
 function extractHost(value: string): string | null {
 	try {
@@ -43,12 +46,12 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		autoSignIn: true,
-		disableSignUp: true,
+		disableSignUp: !isPlaywrightHarness,
 		minPasswordLength: 10,
 		requireEmailVerification: false,
 	},
 	rateLimit: {
-		enabled: true,
+		enabled: !isPlaywrightHarness,
 		window: 60,
 		max: 10,
 		customRules: {

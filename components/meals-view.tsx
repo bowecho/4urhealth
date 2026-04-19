@@ -53,7 +53,13 @@ export function MealsView({
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">Saved meals</h1>
+				<div>
+					<h1 className="text-2xl font-semibold tracking-tight">Saved meals</h1>
+					<p className="text-sm text-zinc-500">
+						Save combinations you reach for often, then log them in a couple of
+						taps.
+					</p>
+				</div>
 				<button
 					type="button"
 					onClick={() => setBuilder({ mode: "create" })}
@@ -64,17 +70,24 @@ export function MealsView({
 			</div>
 
 			{meals.length === 0 ? (
-				<p className="text-sm text-zinc-500 py-8 text-center">
-					{foods.length === 0
-						? "Add some foods first, then bundle them into saved meals."
-						: "No saved meals yet. Create one to reuse combinations of foods."}
-				</p>
+				<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
+					<p className="text-base font-medium">
+						{foods.length === 0
+							? "You need foods before meals"
+							: "No saved meals yet"}
+					</p>
+					<p className="mt-2 text-sm text-zinc-500">
+						{foods.length === 0
+							? "Create a few foods first, then bundle them into reusable meals."
+							: "Create one for a breakfast, lunch, or snack you log repeatedly."}
+					</p>
+				</div>
 			) : (
 				<ul className="space-y-3">
 					{meals.map((m) => (
 						<li
 							key={m.id}
-							className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-2"
+							className="space-y-2 rounded-xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
 						>
 							<div className="flex items-start justify-between gap-3">
 								<div className="flex-1 min-w-0">

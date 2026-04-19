@@ -1,7 +1,10 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
+import { isPlaywrightHarnessEnabled } from "@/lib/runtime-flags";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = isPlaywrightHarnessEnabled()
+	? ["/login", "/signup"]
+	: ["/login"];
 
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;

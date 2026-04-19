@@ -35,6 +35,7 @@ pnpm start
 pnpm typecheck
 pnpm lint
 pnpm test:run
+pnpm test:e2e
 pnpm build
 ```
 
@@ -61,6 +62,7 @@ pnpm db:push:unsafe
 - [AGENTS.md](/Users/tonyc/src/4urhealth/AGENTS.md:1) for project conventions and working rules
 - [ARCHITECTURE.md](/Users/tonyc/src/4urhealth/ARCHITECTURE.md:1) for system design and data flow
 - [DB_MIGRATIONS.md](/Users/tonyc/src/4urhealth/DB_MIGRATIONS.md:1) for the production migration workflow
+- [OPERATIONS.md](/Users/tonyc/src/4urhealth/OPERATIONS.md:1) for backup, restore, deploy, and monitoring guidance
 
 ## Deployment
 
@@ -80,3 +82,18 @@ For database changes in production:
 2. review the SQL
 3. apply it with `pnpm db:migrate`
 4. then deploy the app
+
+## Verification
+
+Playwright coverage exists for:
+
+- protected-route redirect behavior
+- signup/onboarding in the local e2e harness
+- theme persistence across sessions
+- core food/saved meal/logging flow
+
+Run it with:
+
+```bash
+pnpm test:e2e
+```

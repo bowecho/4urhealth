@@ -51,7 +51,7 @@ export function MealCard({
 	}
 
 	return (
-		<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+		<section className="rounded-xl border border-zinc-200 bg-white/80 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
 			<header className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
 				<div>
 					<h2 className="font-medium">{label}</h2>
@@ -69,7 +69,11 @@ export function MealCard({
 			</header>
 
 			{items.length === 0 ? (
-				<p className="px-4 py-3 text-sm text-zinc-500">Nothing logged yet.</p>
+				<div className="px-4 py-5">
+					<p className="rounded-lg border border-dashed border-zinc-300 px-4 py-4 text-sm text-zinc-500 dark:border-zinc-700">
+						Nothing logged yet. Add a food or saved meal when you’re ready.
+					</p>
+				</div>
 			) : (
 				<ul>
 					{items.map((item) => (

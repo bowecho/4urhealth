@@ -125,11 +125,21 @@ export function SettingsView({ profile }: { profile: Profile }) {
 
 	return (
 		<div className="space-y-8">
-			<h1 className="text-2xl font-semibold">Settings</h1>
+			<div className="space-y-2">
+				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+				<p className="max-w-2xl text-sm text-zinc-500">
+					Keep your targets, timezone, and theme aligned with how you actually
+					use the app day to day.
+				</p>
+			</div>
 
-			<section className="space-y-4">
-				<h2 className="text-lg font-semibold">Profile</h2>
-				<p className="text-xs text-zinc-500">{profile.email}</p>
+			<SectionCard
+				title="Profile"
+				description="Basic details used to estimate calorie and macro targets."
+			>
+				<p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+					{profile.email}
+				</p>
 
 				<div className="grid sm:grid-cols-2 gap-3">
 					<Field label="Name">
@@ -204,14 +214,20 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						/>
 					</Field>
 				</div>
-			</section>
+			</SectionCard>
 
-			<section className="space-y-4">
+			<SectionCard
+				title="Daily targets"
+				description="Manually tune these, or recalc them from your current weight."
+			>
 				<div className="flex items-end justify-between gap-2 flex-wrap">
 					<div>
-						<h2 className="text-lg font-semibold">Daily targets</h2>
+						<h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+							Calculated plan
+						</h3>
 						<p className="text-xs text-zinc-500">
-							Manually tune, or recalc from your current weight.
+							Use these as defaults, then adjust if your real-world intake needs
+							fine tuning.
 						</p>
 					</div>
 					<RecalcButton onRecalc={handleRecalc} />
@@ -258,15 +274,12 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						/>
 					</Field>
 				</div>
-			</section>
+			</SectionCard>
 
-			<section className="space-y-4">
-				<div>
-					<h2 className="text-lg font-semibold">Theme</h2>
-					<p className="text-xs text-zinc-500">
-						Choose how the app should look the next time you come back.
-					</p>
-				</div>
+			<SectionCard
+				title="Theme"
+				description="Choose how the app should look the next time you come back."
+			>
 				<div className="inline-flex rounded-lg border border-zinc-300 dark:border-zinc-700 p-1 gap-1">
 					{(["light", "dark"] as const).map((option) => {
 						const active =
@@ -297,36 +310,68 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						.
 					</p>
 				)}
-			</section>
+			</SectionCard>
 
-			<div className="flex items-center gap-3">
-				<button
-					type="button"
-					onClick={handleSave}
-					disabled={saving}
-					className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
-				>
-					{saving ? "Saving…" : "Save profile"}
-				</button>
-				{saveMsg ? <p className="text-sm text-emerald-600">{saveMsg}</p> : null}
-				{saveErr ? <p className="text-sm text-red-600">{saveErr}</p> : null}
+			<div className="rounded-2xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<p className="text-sm font-medium">Ready to save?</p>
+						<p className="text-xs text-zinc-500">
+							Changes apply immediately and will be there the next time you open
+							the app.
+						</p>
+					</div>
+					<div className="flex items-center gap-3">
+						<button
+							type="button"
+							onClick={handleSave}
+							disabled={saving}
+							className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+						>
+							{saving ? "Saving…" : "Save profile"}
+						</button>
+						{saveMsg ? (
+							<p className="text-sm text-emerald-600">{saveMsg}</p>
+						) : null}
+						{saveErr ? <p className="text-sm text-red-600">{saveErr}</p> : null}
+					</div>
+				</div>
 			</div>
 
-			<section className="space-y-3">
-				<h2 className="text-lg font-semibold">Export</h2>
-				<p className="text-sm text-zinc-500">
-					Download your foods, weights, saved meals, and meal logs as JSON.
-				</p>
+			<SectionCard
+				title="Export"
+				description="Download your foods, weights, saved meals, and meal logs as JSON."
+			>
 				<a
 					href="/settings/export"
 					className="inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
 				>
 					Download JSON
 				</a>
-			</section>
+			</SectionCard>
 
 			<ImportSection />
 		</div>
+	);
+}
+
+function SectionCard({
+	title,
+	description,
+	children,
+}: {
+	title: string;
+	description: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<section className="rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
+			<div className="mb-4 space-y-1">
+				<h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+				<p className="text-sm text-zinc-500">{description}</p>
+			</div>
+			<div className="space-y-4">{children}</div>
+		</section>
 	);
 }
 
@@ -400,12 +445,10 @@ function ImportSection() {
 	}
 
 	return (
-		<section className="space-y-3">
-			<h2 className="text-lg font-semibold">Import</h2>
-			<p className="text-sm text-zinc-500">
-				Upload a JSON file previously exported. Records are added, not replaced;
-				weights upsert by date.
-			</p>
+		<SectionCard
+			title="Import"
+			description="Upload a JSON file previously exported. Records are added, not replaced; weights upsert by date."
+		>
 			<input
 				ref={inputRef}
 				type="file"
@@ -432,6 +475,6 @@ function ImportSection() {
 				</p>
 			) : null}
 			{error ? <p className="text-sm text-red-600">{error}</p> : null}
-		</section>
+		</SectionCard>
 	);
 }

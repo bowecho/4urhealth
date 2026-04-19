@@ -71,7 +71,12 @@ export function FoodsList({
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-semibold">Foods</h1>
+				<div>
+					<h1 className="text-2xl font-semibold tracking-tight">Foods</h1>
+					<p className="text-sm text-zinc-500">
+						Build the personal food catalog that powers logging and saved meals.
+					</p>
+				</div>
 				<button
 					type="button"
 					onClick={() => setDialog({ mode: "create" })}
@@ -98,19 +103,28 @@ export function FoodsList({
 			</div>
 
 			{filtered.length === 0 ? (
-				<p className="text-sm text-zinc-500 py-8 text-center">
-					{items.length === 0
-						? showArchived
-							? "Nothing archived."
-							: "No foods yet. Add your first one."
-						: "No matches."}
-				</p>
+				<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
+					<p className="text-base font-medium">
+						{items.length === 0
+							? showArchived
+								? "No archived foods"
+								: "No foods yet"
+							: "No matches"}
+					</p>
+					<p className="mt-2 text-sm text-zinc-500">
+						{items.length === 0
+							? showArchived
+								? "Archived items will show up here when you restore or clean up your catalog."
+								: "Add your first food once, then reuse it everywhere in the app."
+							: "Try a different search term or switch between active and archived items."}
+					</p>
+				</div>
 			) : (
 				<ul className="space-y-2">
 					{filtered.map((f) => (
 						<li
 							key={f.id}
-							className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 flex items-start gap-3"
+							className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white/80 p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
 						>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-baseline gap-2">

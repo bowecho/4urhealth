@@ -185,6 +185,8 @@ You don't need to know all of this — most of our UI is straightforward. We mos
 
 5. **Cookie cache is disabled.** Better Auth can cache session lookups in a signed cookie for 5 minutes. We turned this off because when onboarding writes `onboardedAt` to the user row, the `(app)/layout.tsx` redirect needs to see the new value on the very next request — a 5-minute lag would loop the user back to onboarding after they finish it.
 
+6. **Signup is disabled in real deployments.** Public self-service signup is intentionally off. The only exception is the local Playwright harness, which flips it back on under `PLAYWRIGHT=1` so browser tests can create and clean up disposable accounts.
+
 ### ORM: Drizzle
 
 **What it is:** a TypeScript-first, SQL-shaped ORM. Unlike Prisma (which has its own schema language and a generated client), Drizzle lets you declare tables as TS literals and then composes queries in a fluent SQL-like builder:
@@ -286,7 +288,13 @@ We deliberately avoid Moment.js (huge, mutable) and keep most date work in the s
 - **Biome** — a single Rust binary that replaces ESLint + Prettier + import sorting. Much faster, simpler config. Configured for tabs and double quotes (matching the project style). `pnpm lint:fix` auto-fixes formatting and safe lint rules.
 - **TypeScript strict mode** — all files are `.ts` / `.tsx`, all strict checks on. Path alias `@/*` resolves to the project root so `@/db`, `@/lib/auth-server` always work.
 - **Vitest** — the `vite`-powered test runner. We use it for pure-function unit tests (`tdee.test.ts`, `date.test.ts`). Fast cold start, Jest-compatible API.
-- **Playwright** — headless-browser end-to-end tests. Scaffolded but not heavily used yet; the intended target is the critical flows (signup → onboarding → log a day → view stats).
+- **Playwright** — headless-browser end-to-end tests. We use it for the highest-risk user journeys:
+  - protected-route redirect behavior
+  - local-harness signup → onboarding
+  - theme persistence across sessions
+  - core food → saved meal → meal logging flow
+
+The suite starts its own local Next dev server with `PLAYWRIGHT=1`. That flag enables a local-only signup harness so end-to-end tests can create disposable accounts without reopening public signup on real deployments.
 
 ---
 
@@ -350,6 +358,7 @@ So we **snapshot** the displayed fields into `meal_log_item` at insert time. Rea
 - **Password storage:** argon2id via Better Auth, minimum length 10.
 - **Sessions:** HTTP-only, `Secure`, `SameSite=Lax` cookies. 30-day rolling expiry; updated at most daily.
 - **Rate limiting:** Better Auth's built-in limiter on `/api/auth/sign-in/email`, `/api/auth/sign-up/email`, password reset.
+- **Signup posture:** public signup is disabled in normal development and production. Only the local Playwright harness re-enables it for disposable test accounts.
 - **CSRF:** Server actions verify `Origin` header (Next.js default). Better Auth uses its own CSRF token on `/api/auth/*`.
 - **SQL injection:** impossible — Drizzle parameterises every query.
 - **Authorization:** every server-side query filters by the session's `userId` (from `requireUserId()`). This is **application-level** enforcement; there's no row-level security in Postgres. A bug that forgets the `userId` filter would be a real vulnerability, so it's the thing we watch for in code review.
@@ -360,7 +369,7 @@ So we **snapshot** the displayed fields into `meal_log_item` at insert time. Rea
     - `Referrer-Policy: strict-origin-when-cross-origin`
     - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
     - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
-- **No CSP yet.** A proper Content-Security-Policy is hard with Next.js inline scripts and worth a dedicated pass; we skipped it for MVP and should add it before this app ever holds anything other than food and weight logs.
+- **Content-Security-Policy:** the app now sends a CSP from `next.config.ts`. The theme bootstrap was moved out of inline app code so CSP can stay stricter without breaking the first-paint theme behavior.
 
 ---
 

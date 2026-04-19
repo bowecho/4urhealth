@@ -1,14 +1,10 @@
+import { DayView } from "@/components/day-view";
 import { requireSession } from "@/lib/auth-server";
+import { todayInTz } from "@/lib/date";
 
 export default async function TodayPage() {
 	const session = await requireSession();
-
-	return (
-		<main className="flex-1 p-6 max-w-3xl mx-auto w-full">
-			<h1 className="text-2xl font-semibold mb-4">Today</h1>
-			<p className="text-zinc-600 dark:text-zinc-400">
-				Welcome, {session.user.name}. Dashboard coming in the next milestone.
-			</p>
-		</main>
-	);
+	const tz = session.user.timezone || "UTC";
+	const today = todayInTz(tz);
+	return <DayView date={today} today={today} />;
 }

@@ -82,6 +82,45 @@ test.describe
 			await expect(page.getByText(/130 cal/)).toBeVisible();
 		});
 
+		test("user can create a food from the add-to-meal dialog", async ({
+			page,
+		}) => {
+			await signIn(page, credentials);
+
+			const foodName = "Dialog Apple Slices";
+			const breakfastCard = page.locator("section").filter({
+				has: page.getByRole("heading", { name: "Breakfast" }),
+			});
+
+			await breakfastCard.getByRole("button", { name: "+ Add" }).click();
+			const addDialog = page.locator("div").filter({
+				has: page.getByRole("heading", { name: "Add to Breakfast" }),
+			});
+			await addDialog.getByRole("button", { name: "+ New food" }).click();
+			await addDialog.getByLabel("Name").fill(foodName);
+			await addDialog.getByLabel("Serving size").fill("1");
+			await addDialog.getByLabel("Unit").fill("cup");
+			await addDialog.getByLabel("Calories per serving").fill("60");
+			await addDialog.getByLabel("Protein (g)").fill("0");
+			await addDialog.getByLabel("Fat (g)").fill("0");
+			await addDialog.getByLabel("Carbs (g)").fill("15");
+			await addDialog
+				.getByRole("button", { name: "Save", exact: true })
+				.click();
+
+			await expect(addDialog.getByText(foodName)).toBeVisible();
+			await addDialog.getByRole("button", { name: "Add", exact: true }).click();
+			await expect(
+				page.getByRole("heading", { name: "Add to Breakfast" }),
+			).not.toBeVisible();
+
+			const mealRow = breakfastCard.locator("li").filter({
+				has: page.getByText(foodName),
+			});
+			await expect(mealRow.getByText(foodName)).toBeVisible();
+			await expect(mealRow).toContainText("60 cal");
+		});
+
 		test("user can log weight and see it reflected in stats", async ({
 			page,
 		}) => {

@@ -277,7 +277,7 @@ export function WeightView({
 				</div>
 			</section>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
 				<header className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
 					<h2 className="font-medium">Entries</h2>
 				</header>

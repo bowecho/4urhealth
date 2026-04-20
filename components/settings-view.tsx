@@ -186,7 +186,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						<select
 							value={sex}
 							onChange={(e) => setSex(e.target.value as "male" | "female")}
-							className={inputCls}
+							className={selectCls}
 						>
 							<option value="male">Male</option>
 							<option value="female">Female</option>
@@ -217,7 +217,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							onChange={(e) =>
 								setActivityLevel(e.target.value as ActivityLevel)
 							}
-							className={inputCls}
+							className={selectCls}
 						>
 							{Object.entries(ACTIVITY_LABELS).map(([k, v]) => (
 								<option key={k} value={k}>
@@ -409,6 +409,8 @@ function SectionCard({
 
 const inputCls =
 	"theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
+
+const selectCls = `${inputCls} min-h-11`;
 
 function Field({
 	label,

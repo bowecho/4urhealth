@@ -32,25 +32,36 @@ type Profile = {
 	themePreference: ThemePreference | null;
 };
 
+function parseRequiredNumber(value: string, label: string) {
+	if (value.trim() === "") throw new Error(`${label} is required`);
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed)) throw new Error(`${label} is invalid`);
+	return parsed;
+}
+
 export function SettingsView({ profile }: { profile: Profile }) {
 	const [name, setName] = useState(profile.name);
 	const [sex, setSex] = useState<"male" | "female">(profile.sex ?? "male");
 	const [dateOfBirth, setDateOfBirth] = useState(profile.dateOfBirth ?? "");
-	const [heightIn, setHeightIn] = useState(profile.heightIn ?? 68);
+	const [heightIn, setHeightIn] = useState((profile.heightIn ?? 68).toString());
 	const [activityLevel, setActivityLevel] = useState<ActivityLevel>(
 		profile.activityLevel ?? "moderate",
 	);
 	const [weightGoal, setWeightGoal] = useState(
-		profile.weightGoalLbsPerWeek ?? -1,
+		(profile.weightGoalLbsPerWeek ?? -1).toString(),
 	);
 	const [targetCalories, setTargetCalories] = useState(
-		profile.targetCalories ?? 2000,
+		(profile.targetCalories ?? 2000).toString(),
 	);
 	const [targetProteinG, setTargetProteinG] = useState(
-		profile.targetProteinG ?? 150,
+		(profile.targetProteinG ?? 150).toString(),
 	);
-	const [targetFatG, setTargetFatG] = useState(profile.targetFatG ?? 60);
-	const [targetCarbsG, setTargetCarbsG] = useState(profile.targetCarbsG ?? 200);
+	const [targetFatG, setTargetFatG] = useState(
+		(profile.targetFatG ?? 60).toString(),
+	);
+	const [targetCarbsG, setTargetCarbsG] = useState(
+		(profile.targetCarbsG ?? 200).toString(),
+	);
 	const [timezone, setTimezone] = useState(
 		profile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
@@ -77,19 +88,31 @@ export function SettingsView({ profile }: { profile: Profile }) {
 		setSaveErr(null);
 		startSave(async () => {
 			try {
+				const parsedHeightIn = parseRequiredNumber(heightIn, "Height");
+				const parsedWeightGoal = parseRequiredNumber(weightGoal, "Goal");
+				const parsedTargetCalories = parseRequiredNumber(
+					targetCalories,
+					"Calories",
+				);
+				const parsedTargetProteinG = parseRequiredNumber(
+					targetProteinG,
+					"Protein",
+				);
+				const parsedTargetFatG = parseRequiredNumber(targetFatG, "Fat");
+				const parsedTargetCarbsG = parseRequiredNumber(targetCarbsG, "Carbs");
 				const resolvedThemePreference =
 					themePreference ?? systemThemePreference;
 				await saveProfileAction({
 					name,
 					sex,
 					dateOfBirth,
-					heightIn,
+					heightIn: parsedHeightIn,
 					activityLevel,
-					weightGoalLbsPerWeek: weightGoal,
-					targetCalories,
-					targetProteinG,
-					targetFatG,
-					targetCarbsG,
+					weightGoalLbsPerWeek: parsedWeightGoal,
+					targetCalories: parsedTargetCalories,
+					targetProteinG: parsedTargetProteinG,
+					targetFatG: parsedTargetFatG,
+					targetCarbsG: parsedTargetCarbsG,
 					timezone,
 					themePreference: resolvedThemePreference,
 				});
@@ -105,22 +128,31 @@ export function SettingsView({ profile }: { profile: Profile }) {
 			setSaveErr("Date of birth required to calculate TDEE");
 			return;
 		}
+		const parsedHeightIn = Number(heightIn);
+		const parsedWeightGoal = Number(weightGoal);
+		if (
+			!Number.isFinite(parsedHeightIn) ||
+			!Number.isFinite(parsedWeightGoal)
+		) {
+			setSaveErr("Height and goal are required to calculate TDEE");
+			return;
+		}
 		const age = calcAge(new Date(`${dateOfBirth}T00:00:00Z`));
 		const bmr = calcBmr({
 			sex,
 			weightLbs: estimatedWeightLbs,
-			heightIn,
+			heightIn: parsedHeightIn,
 			age,
 		});
 		const tdee = calcTdee({ bmr, activityLevel });
-		const target = Math.round(tdee + weightGoal * 500);
+		const target = Math.round(tdee + parsedWeightGoal * 500);
 		const protein = Math.round(estimatedWeightLbs * 0.8);
 		const fat = Math.round(estimatedWeightLbs * 0.3);
 		const carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
-		setTargetCalories(target);
-		setTargetProteinG(protein);
-		setTargetFatG(fat);
-		setTargetCarbsG(carbs);
+		setTargetCalories(target.toString());
+		setTargetProteinG(protein.toString());
+		setTargetFatG(fat.toString());
+		setTargetCarbsG(carbs.toString());
 	}
 
 	return (
@@ -175,7 +207,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							max={96}
 							step={0.5}
 							value={heightIn}
-							onChange={(e) => setHeightIn(Number(e.target.value))}
+							onChange={(e) => setHeightIn(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>
@@ -201,7 +233,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							min={-2}
 							max={2}
 							value={weightGoal}
-							onChange={(e) => setWeightGoal(Number(e.target.value))}
+							onChange={(e) => setWeightGoal(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>
@@ -239,7 +271,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							min={1000}
 							max={6000}
 							value={targetCalories}
-							onChange={(e) => setTargetCalories(Number(e.target.value))}
+							onChange={(e) => setTargetCalories(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>
@@ -249,7 +281,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							min={0}
 							max={500}
 							value={targetProteinG}
-							onChange={(e) => setTargetProteinG(Number(e.target.value))}
+							onChange={(e) => setTargetProteinG(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>
@@ -259,7 +291,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							min={0}
 							max={300}
 							value={targetFatG}
-							onChange={(e) => setTargetFatG(Number(e.target.value))}
+							onChange={(e) => setTargetFatG(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>
@@ -269,7 +301,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							min={0}
 							max={800}
 							value={targetCarbsG}
-							onChange={(e) => setTargetCarbsG(Number(e.target.value))}
+							onChange={(e) => setTargetCarbsG(e.target.value)}
 							className={inputCls}
 						/>
 					</Field>

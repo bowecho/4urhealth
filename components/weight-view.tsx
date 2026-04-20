@@ -33,14 +33,14 @@ export function WeightView({
 	const [range, setRange] = useState<Range>(90);
 	const [showMA, setShowMA] = useState(true);
 	const [editing, setEditing] = useState<string | null>(null);
-	const [editWeight, setEditWeight] = useState<number>(0);
+	const [editWeight, setEditWeight] = useState("0");
 	const [pending, startTransition] = useTransition();
 	const [error, setError] = useState<string | null>(null);
 
 	const todaysEntry = entries.find((e) => e.date === today);
 	const [newDate, setNewDate] = useState(today);
-	const [newWeight, setNewWeight] = useState<number>(
-		todaysEntry?.weightLbs ?? 0,
+	const [newWeight, setNewWeight] = useState(
+		todaysEntry?.weightLbs?.toString() ?? "",
 	);
 
 	const windowStart = addDays(today, -range);
@@ -75,9 +75,15 @@ export function WeightView({
 
 	function handleSave() {
 		setError(null);
+		const parsedWeight =
+			newWeight.trim() === "" ? Number.NaN : Number(newWeight);
+		if (!Number.isFinite(parsedWeight)) {
+			setError("Weight is required");
+			return;
+		}
 		startTransition(async () => {
 			try {
-				await saveWeightAction({ date: newDate, weightLbs: newWeight });
+				await saveWeightAction({ date: newDate, weightLbs: parsedWeight });
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to save");
 			}
@@ -85,9 +91,15 @@ export function WeightView({
 	}
 
 	function handleEditSave(date: string) {
+		const parsedWeight =
+			editWeight.trim() === "" ? Number.NaN : Number(editWeight);
+		if (!Number.isFinite(parsedWeight)) {
+			setError("Weight is required");
+			return;
+		}
 		startTransition(async () => {
 			try {
-				await saveWeightAction({ date, weightLbs: editWeight });
+				await saveWeightAction({ date, weightLbs: parsedWeight });
 				setEditing(null);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to save");
@@ -154,15 +166,19 @@ export function WeightView({
 							min={60}
 							max={700}
 							step={0.1}
-							value={newWeight || ""}
-							onChange={(e) => setNewWeight(Number(e.target.value))}
+							value={newWeight}
+							onChange={(e) => setNewWeight(e.target.value)}
 							className="w-28 rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 						/>
 					</div>
 					<button
 						type="button"
 						onClick={handleSave}
-						disabled={pending || !newWeight}
+						disabled={
+							pending ||
+							newWeight.trim() === "" ||
+							!Number.isFinite(Number(newWeight))
+						}
 						className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 					>
 						{pending ? "Saving…" : "Save"}
@@ -285,7 +301,7 @@ export function WeightView({
 											max={700}
 											step={0.1}
 											value={editWeight}
-											onChange={(ev) => setEditWeight(Number(ev.target.value))}
+											onChange={(ev) => setEditWeight(ev.target.value)}
 											className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 											aria-label="weight"
 										/>
@@ -314,7 +330,7 @@ export function WeightView({
 											type="button"
 											onClick={() => {
 												setEditing(e.date);
-												setEditWeight(e.weightLbs);
+												setEditWeight(e.weightLbs.toString());
 											}}
 											className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
 										>

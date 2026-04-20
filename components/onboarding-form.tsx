@@ -34,43 +34,64 @@ const ACTIVITY_OPTIONS: ActivityLevel[] = [
 
 type Step = "profile" | "plan";
 
+function parseRequiredNumber(value: string, label: string) {
+	if (value.trim() === "") throw new Error(`${label} is required`);
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed)) throw new Error(`${label} is invalid`);
+	return parsed;
+}
+
 export function OnboardingForm() {
 	const [step, setStep] = useState<Step>("profile");
 	const [sex, setSex] = useState<Sex>("male");
 	const [dateOfBirth, setDateOfBirth] = useState("");
-	const [heightFt, setHeightFt] = useState(5);
-	const [heightInches, setHeightInches] = useState(10);
-	const [weightLbs, setWeightLbs] = useState(180);
+	const [heightFt, setHeightFt] = useState("5");
+	const [heightInches, setHeightInches] = useState("10");
+	const [weightLbs, setWeightLbs] = useState("180");
 	const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
 	const [weightGoal, setWeightGoal] = useState(-1);
 
-	const heightIn = heightFt * 12 + heightInches;
+	const parsedHeightFt = heightFt.trim() === "" ? Number.NaN : Number(heightFt);
+	const parsedHeightInches =
+		heightInches.trim() === "" ? Number.NaN : Number(heightInches);
+	const parsedWeightLbs =
+		weightLbs.trim() === "" ? Number.NaN : Number(weightLbs);
+	const heightIn =
+		Number.isFinite(parsedHeightFt) && Number.isFinite(parsedHeightInches)
+			? parsedHeightFt * 12 + parsedHeightInches
+			: Number.NaN;
 
 	const plan = useMemo(() => {
-		if (!dateOfBirth) return null;
+		if (
+			!dateOfBirth ||
+			!Number.isFinite(heightIn) ||
+			!Number.isFinite(parsedWeightLbs)
+		) {
+			return null;
+		}
 		try {
 			return calcPlan({
 				sex,
 				dateOfBirth: new Date(dateOfBirth),
 				heightIn,
-				weightLbs,
+				weightLbs: parsedWeightLbs,
 				activityLevel,
 				weightGoalLbsPerWeek: weightGoal,
 			});
 		} catch {
 			return null;
 		}
-	}, [sex, dateOfBirth, heightIn, weightLbs, activityLevel, weightGoal]);
+	}, [sex, dateOfBirth, heightIn, parsedWeightLbs, activityLevel, weightGoal]);
 
-	const [targetCalories, setTargetCalories] = useState<number | null>(null);
-	const [targetProtein, setTargetProtein] = useState<number | null>(null);
-	const [targetFat, setTargetFat] = useState<number | null>(null);
-	const [targetCarbs, setTargetCarbs] = useState<number | null>(null);
+	const [targetCalories, setTargetCalories] = useState<string | null>(null);
+	const [targetProtein, setTargetProtein] = useState<string | null>(null);
+	const [targetFat, setTargetFat] = useState<string | null>(null);
+	const [targetCarbs, setTargetCarbs] = useState<string | null>(null);
 
-	const effCalories = targetCalories ?? plan?.targetCalories ?? 0;
-	const effProtein = targetProtein ?? plan?.proteinG ?? 0;
-	const effFat = targetFat ?? plan?.fatG ?? 0;
-	const effCarbs = targetCarbs ?? plan?.carbsG ?? 0;
+	const effCalories = targetCalories ?? plan?.targetCalories?.toString() ?? "";
+	const effProtein = targetProtein ?? plan?.proteinG?.toString() ?? "";
+	const effFat = targetFat ?? plan?.fatG?.toString() ?? "";
+	const effCarbs = targetCarbs ?? plan?.carbsG?.toString() ?? "";
 
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
@@ -82,8 +103,12 @@ export function OnboardingForm() {
 			setError("Date of birth is required");
 			return;
 		}
-		if (heightIn < 36 || heightIn > 96) {
+		if (!Number.isFinite(heightIn) || heightIn < 36 || heightIn > 96) {
 			setError("Height seems out of range");
+			return;
+		}
+		if (!Number.isFinite(parsedWeightLbs) || parsedWeightLbs < 60) {
+			setError("Weight seems out of range");
 			return;
 		}
 		setStep("plan");
@@ -95,17 +120,24 @@ export function OnboardingForm() {
 		const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 		startTransition(async () => {
 			try {
+				const parsedTargetCalories = parseRequiredNumber(
+					effCalories,
+					"Daily calories",
+				);
+				const parsedTargetProtein = parseRequiredNumber(effProtein, "Protein");
+				const parsedTargetFat = parseRequiredNumber(effFat, "Fat");
+				const parsedTargetCarbs = parseRequiredNumber(effCarbs, "Carbs");
 				await saveOnboardingAction({
 					sex,
 					dateOfBirth,
 					heightIn,
-					weightLbs,
+					weightLbs: parsedWeightLbs,
 					activityLevel,
 					weightGoalLbsPerWeek: weightGoal,
-					targetCalories: effCalories,
-					targetProteinG: effProtein,
-					targetFatG: effFat,
-					targetCarbsG: effCarbs,
+					targetCalories: parsedTargetCalories,
+					targetProteinG: parsedTargetProtein,
+					targetFatG: parsedTargetFat,
+					targetCarbsG: parsedTargetCarbs,
 					timezone,
 				});
 			} catch (err) {
@@ -169,7 +201,7 @@ export function OnboardingForm() {
 								min={3}
 								max={8}
 								value={heightFt}
-								onChange={(e) => setHeightFt(Number(e.target.value))}
+								onChange={(e) => setHeightFt(e.target.value)}
 								className={INPUT}
 								aria-label="feet"
 							/>
@@ -181,7 +213,7 @@ export function OnboardingForm() {
 								min={0}
 								max={11}
 								value={heightInches}
-								onChange={(e) => setHeightInches(Number(e.target.value))}
+								onChange={(e) => setHeightInches(e.target.value)}
 								className={INPUT}
 								aria-label="inches"
 							/>
@@ -202,7 +234,7 @@ export function OnboardingForm() {
 						step={0.1}
 						required
 						value={weightLbs}
-						onChange={(e) => setWeightLbs(Number(e.target.value))}
+						onChange={(e) => setWeightLbs(e.target.value)}
 						className={INPUT}
 					/>
 				</div>
@@ -277,7 +309,7 @@ export function OnboardingForm() {
 					min={1000}
 					max={6000}
 					value={effCalories}
-					onChange={(e) => setTargetCalories(Number(e.target.value))}
+					onChange={(e) => setTargetCalories(e.target.value)}
 					className={INPUT}
 				/>
 			</div>
@@ -293,7 +325,7 @@ export function OnboardingForm() {
 						min={0}
 						max={500}
 						value={effProtein}
-						onChange={(e) => setTargetProtein(Number(e.target.value))}
+						onChange={(e) => setTargetProtein(e.target.value)}
 						className={INPUT}
 					/>
 				</div>
@@ -307,7 +339,7 @@ export function OnboardingForm() {
 						min={0}
 						max={300}
 						value={effFat}
-						onChange={(e) => setTargetFat(Number(e.target.value))}
+						onChange={(e) => setTargetFat(e.target.value)}
 						className={INPUT}
 					/>
 				</div>
@@ -321,7 +353,7 @@ export function OnboardingForm() {
 						min={0}
 						max={800}
 						value={effCarbs}
-						onChange={(e) => setTargetCarbs(Number(e.target.value))}
+						onChange={(e) => setTargetCarbs(e.target.value)}
 						className={INPUT}
 					/>
 				</div>

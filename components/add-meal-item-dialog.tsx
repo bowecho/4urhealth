@@ -20,9 +20,12 @@ export function AddMealItemDialog({
 }) {
 	const [query, setQuery] = useState("");
 	const [selected, setSelected] = useState<FoodOption | null>(null);
-	const [servings, setServings] = useState(1);
+	const [servings, setServings] = useState("1");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
+	const parsedServings = servings.trim() === "" ? Number.NaN : Number(servings);
+	const validServings =
+		Number.isFinite(parsedServings) && parsedServings >= 0.01;
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -54,7 +57,7 @@ export function AddMealItemDialog({
 					date,
 					mealType,
 					foodItemId: selected.id,
-					servings,
+					servings: parsedServings,
 				});
 				onClose();
 			} catch (err) {
@@ -107,14 +110,27 @@ export function AddMealItemDialog({
 								min={0.01}
 								step={0.1}
 								value={servings}
-								onChange={(e) => setServings(Number(e.target.value))}
+								onChange={(e) => setServings(e.target.value)}
 								className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 							/>
 							<p className="mt-2 text-xs text-zinc-500">
-								Total: {Math.round(selected.calories * servings)} cal · P{" "}
-								{(selected.proteinG * servings).toFixed(1)}g · F{" "}
-								{(selected.fatG * servings).toFixed(1)}g · C{" "}
-								{(selected.carbsG * servings).toFixed(1)}g
+								Total:{" "}
+								{Math.round(
+									selected.calories * (validServings ? parsedServings : 0),
+								)}{" "}
+								cal · P{" "}
+								{(
+									selected.proteinG * (validServings ? parsedServings : 0)
+								).toFixed(1)}
+								g · F{" "}
+								{(selected.fatG * (validServings ? parsedServings : 0)).toFixed(
+									1,
+								)}
+								g · C{" "}
+								{(
+									selected.carbsG * (validServings ? parsedServings : 0)
+								).toFixed(1)}
+								g
 							</p>
 						</div>
 						{error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -129,7 +145,7 @@ export function AddMealItemDialog({
 							<button
 								type="button"
 								onClick={handleConfirm}
-								disabled={pending || servings <= 0}
+								disabled={pending || !validServings}
 								className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 							>
 								{pending ? "Adding…" : "Add"}

@@ -11,7 +11,7 @@ type DraftItem = {
 	key: string;
 	foodId: string;
 	foodName: string;
-	servings: number;
+	servings: string;
 	calories: number;
 	proteinG: number;
 	fatG: number;
@@ -30,7 +30,11 @@ export function SavedMealBuilder({
 	const [name, setName] = useState(initial?.name ?? "");
 	const [items, setItems] = useState<DraftItem[]>(
 		() =>
-			initial?.items.map((it) => ({ ...it, key: crypto.randomUUID() })) ?? [],
+			initial?.items.map((it) => ({
+				...it,
+				servings: it.servings.toString(),
+				key: crypto.randomUUID(),
+			})) ?? [],
 	);
 	const [query, setQuery] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -64,7 +68,7 @@ export function SavedMealBuilder({
 				key: crypto.randomUUID(),
 				foodId: food.id,
 				foodName: food.name,
-				servings: 1,
+				servings: "1",
 				calories: food.calories,
 				proteinG: food.proteinG,
 				fatG: food.fatG,
@@ -74,7 +78,7 @@ export function SavedMealBuilder({
 		setQuery("");
 	}
 
-	function updateServings(idx: number, servings: number) {
+	function updateServings(idx: number, servings: string) {
 		setItems((prev) =>
 			prev.map((it, i) => (i === idx ? { ...it, servings } : it)),
 		);
@@ -94,12 +98,21 @@ export function SavedMealBuilder({
 			setError("Add at least one food");
 			return;
 		}
+		const parsedItems = items.map((it) => ({
+			foodItemId: it.foodId,
+			servings: it.servings.trim() === "" ? Number.NaN : Number(it.servings),
+		}));
+		if (
+			parsedItems.some(
+				(it) => !Number.isFinite(it.servings) || it.servings < 0.01,
+			)
+		) {
+			setError("Each food needs a valid servings value");
+			return;
+		}
 		const payload = {
 			name: name.trim(),
-			items: items.map((it) => ({
-				foodItemId: it.foodId,
-				servings: it.servings,
-			})),
+			items: parsedItems,
 		};
 		startTransition(async () => {
 			try {
@@ -114,10 +127,11 @@ export function SavedMealBuilder({
 
 	const totals = items.reduce(
 		(acc, it) => {
-			acc.calories += it.calories * it.servings;
-			acc.proteinG += it.proteinG * it.servings;
-			acc.fatG += it.fatG * it.servings;
-			acc.carbsG += it.carbsG * it.servings;
+			const servings = it.servings.trim() === "" ? 0 : Number(it.servings) || 0;
+			acc.calories += it.calories * servings;
+			acc.proteinG += it.proteinG * servings;
+			acc.fatG += it.fatG * servings;
+			acc.carbsG += it.carbsG * servings;
 			return acc;
 		},
 		{ calories: 0, proteinG: 0, fatG: 0, carbsG: 0 },
@@ -168,7 +182,7 @@ export function SavedMealBuilder({
 										min={0.01}
 										step={0.1}
 										value={it.servings}
-										onChange={(e) => updateServings(i, Number(e.target.value))}
+										onChange={(e) => updateServings(i, e.target.value)}
 										className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 										aria-label="servings"
 									/>

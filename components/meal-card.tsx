@@ -25,7 +25,7 @@ export function MealCard({
 	const [addOpen, setAddOpen] = useState(false);
 	const [pending, startTransition] = useTransition();
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editingServings, setEditingServings] = useState<number>(1);
+	const [editingServings, setEditingServings] = useState("1");
 
 	const totalCal = items.reduce((s, i) => s + i.calories, 0);
 
@@ -37,13 +37,15 @@ export function MealCard({
 
 	function startEdit(item: MealItem) {
 		setEditingId(item.id);
-		setEditingServings(item.servings);
+		setEditingServings(item.servings.toString());
 	}
 
 	function saveEdit() {
 		if (!editingId) return;
 		const id = editingId;
-		const servings = editingServings;
+		const servings =
+			editingServings.trim() === "" ? Number.NaN : Number(editingServings);
+		if (!Number.isFinite(servings) || servings < 0.01) return;
 		startTransition(async () => {
 			await updateMealItemServingsAction({ mealLogItemId: id, servings, date });
 			setEditingId(null);
@@ -89,7 +91,7 @@ export function MealCard({
 										min={0.01}
 										step={0.1}
 										value={editingServings}
-										onChange={(e) => setEditingServings(Number(e.target.value))}
+										onChange={(e) => setEditingServings(e.target.value)}
 										className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 										aria-label="servings"
 									/>

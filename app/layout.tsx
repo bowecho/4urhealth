@@ -59,7 +59,7 @@ export default async function RootLayout({
 			data-theme-preference={resolvedTheme ?? undefined}
 			suppressHydrationWarning
 		>
-			<body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+			<body className="app-backdrop min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
 				<Script
 					id="theme-bootstrap"
 					src="/theme-bootstrap.js"

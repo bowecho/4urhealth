@@ -14,7 +14,7 @@ export type FoodDialogInitial = {
 };
 
 const INPUT =
-	"w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100 dark:focus:ring-zinc-100";
+	"theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100 dark:focus:ring-zinc-100";
 const LABEL = "block text-xs font-medium mb-1 text-zinc-600 dark:text-zinc-400";
 
 function parseRequiredNumber(value: string, label: string) {
@@ -100,7 +100,7 @@ export function FoodDialog({
 			/>
 			<form
 				onSubmit={handleSubmit}
-				className="relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
+				className="theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
 			>
 				<h2 className="text-lg font-semibold">
 					{initial ? "Edit food" : "New food"}
@@ -234,14 +234,14 @@ export function FoodDialog({
 					<button
 						type="button"
 						onClick={onCancel}
-						className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						disabled={submitting}
-						className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+						className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
 					>
 						{submitting ? "Saving…" : "Save"}
 					</button>

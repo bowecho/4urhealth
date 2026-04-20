@@ -15,16 +15,20 @@ const LINKS = [
 export function AppNav() {
 	const pathname = usePathname();
 	return (
-		<header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+		<header className="theme-nav-shell border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
 			<nav className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-3 sm:h-14 sm:flex-row sm:items-center sm:gap-4 sm:py-0">
 				<div className="flex items-center justify-between gap-3 sm:w-auto sm:shrink-0">
-					<Link href="/" className="text-sm font-semibold">
-						4urhealth
+					<Link
+						href="/"
+						className="flex items-center gap-2 text-sm font-semibold"
+					>
+						<span className="theme-brand-mark text-base">●</span>
+						<span>4urhealth</span>
 					</Link>
 					<form action={signOutAction} className="shrink-0 sm:hidden">
 						<button
 							type="submit"
-							className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+							className="text-sm text-zinc-500 hover:text-[var(--accent-strong)] dark:hover:text-[var(--accent-strong)]"
 						>
 							Sign out
 						</button>
@@ -40,8 +44,8 @@ export function AppNav() {
 								href={l.href}
 								className={`px-3 py-1.5 text-sm rounded-md text-center ${
 									active
-										? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-										: "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-900"
+										? "theme-active-pill"
+										: "text-zinc-600 hover:text-[var(--accent-strong)] hover:bg-[var(--accent-soft)] dark:text-zinc-400 dark:hover:text-[var(--accent-strong)] dark:hover:bg-[var(--accent-soft)]"
 								}`}
 							>
 								{l.label}
@@ -52,7 +56,7 @@ export function AppNav() {
 				<form action={signOutAction} className="hidden shrink-0 sm:block">
 					<button
 						type="submit"
-						className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+						className="text-sm text-zinc-500 hover:text-[var(--accent-strong)] dark:hover:text-[var(--accent-strong)]"
 					>
 						Sign out
 					</button>

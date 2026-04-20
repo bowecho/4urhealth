@@ -80,7 +80,7 @@ export function FoodsList({
 				<button
 					type="button"
 					onClick={() => setDialog({ mode: "create" })}
-					className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+					className="theme-primary-button rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
 				>
 					+ New food
 				</button>
@@ -92,18 +92,18 @@ export function FoodsList({
 					placeholder="Search foods…"
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
-					className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100 dark:focus:ring-zinc-100"
+					className="theme-input flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100 dark:focus:ring-zinc-100"
 				/>
 				<Link
 					href={showArchived ? "/foods" : "/foods?archived=1"}
-					className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+					className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
 				>
 					{showArchived ? "Active" : "Archived"}
 				</Link>
 			</div>
 
 			{filtered.length === 0 ? (
-				<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
+				<div className="theme-empty-state rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
 					<p className="text-base font-medium">
 						{items.length === 0
 							? showArchived
@@ -124,7 +124,7 @@ export function FoodsList({
 					{filtered.map((f) => (
 						<li
 							key={f.id}
-							className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white/80 p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
+							className="theme-surface rounded-xl border border-zinc-200 bg-white/80 p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
 						>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-baseline gap-2">
@@ -145,7 +145,7 @@ export function FoodsList({
 									<button
 										type="button"
 										onClick={() => setDialog({ mode: "edit", food: f })}
-										className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+										className="theme-secondary-button text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
 									>
 										Edit
 									</button>
@@ -153,7 +153,7 @@ export function FoodsList({
 								<button
 									type="button"
 									onClick={() => handleArchive(f)}
-									className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+									className="theme-secondary-button text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
 								>
 									{f.archivedAt ? "Restore" : "Archive"}
 								</button>

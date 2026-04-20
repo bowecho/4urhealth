@@ -55,9 +55,9 @@ export function StatsView({
 	const streak = computeStreak(dailySeries, today, targets.calories);
 
 	const macroData = [
-		{ name: "Protein", value: avg.proteinG * 4, color: "#0ea5e9" },
-		{ name: "Fat", value: avg.fatG * 9, color: "#f59e0b" },
-		{ name: "Carbs", value: avg.carbsG * 4, color: "#10b981" },
+		{ name: "Protein", value: avg.proteinG * 4, color: "#7c9582" },
+		{ name: "Fat", value: avg.fatG * 9, color: "#c89d67" },
+		{ name: "Carbs", value: avg.carbsG * 4, color: "#9baea2" },
 	];
 	const hasMacros = macroData.some((m) => m.value > 0);
 
@@ -105,7 +105,7 @@ export function StatsView({
 				/>
 			</div>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
 				<h2 className="text-sm font-medium mb-3">Calories per day</h2>
 				{dailySeries.every((d) => d.calories === 0) ? (
 					<p className="text-sm text-zinc-500 py-4 text-center">
@@ -125,7 +125,7 @@ export function StatsView({
 				)}
 			</section>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
 				<h2 className="text-sm font-medium mb-3">Average macros</h2>
 				{!hasMacros ? (
 					<p className="text-sm text-zinc-500 py-4 text-center">
@@ -182,7 +182,7 @@ export function StatsView({
 				)}
 			</section>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
 				<h2 className="text-sm font-medium mb-2">Weight change</h2>
 				{weightDelta === null ? (
 					<p className="text-sm text-zinc-500">
@@ -224,8 +224,8 @@ function RangeLink({
 			href={href}
 			className={`px-3 py-1 text-sm rounded-md ${
 				active
-					? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
-					: "border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+					? "theme-active-pill"
+					: "theme-secondary-button border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900"
 			}`}
 		>
 			{label}
@@ -235,7 +235,7 @@ function RangeLink({
 
 function Stat({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3">
+		<div className="theme-stat-card rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3">
 			<p className="text-xs text-zinc-500">{label}</p>
 			<p className="text-lg font-semibold mt-0.5">{value}</p>
 		</div>
@@ -253,7 +253,7 @@ function AdherenceRow({
 }) {
 	const pct = target ? Math.min(150, (calories / target) * 100) : 0;
 	const over = target !== null && calories > target;
-	const barColor = over ? "bg-red-500" : "bg-emerald-500";
+	const barColor = over ? "var(--accent-amber)" : "var(--accent-strong)";
 	const [, m, d] = date.split("-");
 	return (
 		<li className="flex items-center gap-3 text-xs">
@@ -263,8 +263,11 @@ function AdherenceRow({
 			<div className="flex-1 h-2 rounded-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden">
 				{target && calories > 0 ? (
 					<div
-						className={`h-full ${barColor}`}
-						style={{ width: `${Math.min(100, pct)}%` }}
+						className="h-full"
+						style={{
+							width: `${Math.min(100, pct)}%`,
+							backgroundColor: barColor,
+						}}
 					/>
 				) : null}
 			</div>

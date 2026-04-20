@@ -29,18 +29,43 @@ describe("food actions", () => {
 	});
 
 	it("stringifies numeric fields and normalizes a blank brand on create", async () => {
-		const values = vi.fn().mockResolvedValue(undefined);
+		const returning = vi.fn().mockResolvedValue([
+			{
+				id: "food-1",
+				name: "Greek Yogurt",
+				brand: null,
+				servingSize: "1.5",
+				servingUnit: "container",
+				calories: 130,
+				proteinG: "23",
+				fatG: "0",
+				carbsG: "9",
+			},
+		]);
+		const values = vi.fn(() => ({ returning }));
 		db.insert.mockReturnValue({ values });
 
-		await createFoodAction({
+		await expect(
+			createFoodAction({
+				name: "Greek Yogurt",
+				brand: "   ",
+				servingSize: 1.5,
+				servingUnit: "container",
+				calories: 130,
+				proteinG: 23,
+				fatG: 0,
+				carbsG: 9,
+			}),
+		).resolves.toEqual({
+			id: "food-1",
 			name: "Greek Yogurt",
-			brand: "   ",
-			servingSize: 1.5,
+			brand: null,
+			servingSize: "1.5",
 			servingUnit: "container",
 			calories: 130,
-			proteinG: 23,
-			fatG: 0,
-			carbsG: 9,
+			proteinG: "23",
+			fatG: "0",
+			carbsG: "9",
 		});
 
 		expect(values).toHaveBeenCalledWith({
@@ -54,6 +79,7 @@ describe("food actions", () => {
 			fatG: "0",
 			carbsG: "9",
 		});
+		expect(returning).toHaveBeenCalledTimes(1);
 		expect(revalidatePath).toHaveBeenCalledWith("/foods");
 	});
 

@@ -137,7 +137,7 @@ export function WeightView({
 				) : null}
 			</div>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
 				<p className="text-sm font-medium">Log weight</p>
 				<div className="flex flex-wrap gap-2 items-end">
 					<div>
@@ -153,7 +153,7 @@ export function WeightView({
 							max={today}
 							value={newDate}
 							onChange={(e) => setNewDate(e.target.value)}
-							className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+							className="theme-input rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 						/>
 					</div>
 					<div>
@@ -168,7 +168,7 @@ export function WeightView({
 							step={0.1}
 							value={newWeight}
 							onChange={(e) => setNewWeight(e.target.value)}
-							className="w-28 rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+							className="theme-input w-28 rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 						/>
 					</div>
 					<button
@@ -179,7 +179,7 @@ export function WeightView({
 							newWeight.trim() === "" ||
 							!Number.isFinite(Number(newWeight))
 						}
-						className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+						className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 					>
 						{pending ? "Saving…" : "Save"}
 					</button>
@@ -187,7 +187,7 @@ export function WeightView({
 				{error ? <p className="text-sm text-red-600">{error}</p> : null}
 			</section>
 
-			<section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
+			<section className="theme-surface rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
 				<div className="flex items-center justify-between flex-wrap gap-2">
 					<div className="flex gap-1">
 						{[30, 90, 365].map((r) => (
@@ -197,8 +197,8 @@ export function WeightView({
 								onClick={() => setRange(r as Range)}
 								className={`text-xs px-2.5 py-1 rounded-md ${
 									range === r
-										? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-										: "border border-zinc-300 dark:border-zinc-700"
+										? "theme-active-pill"
+										: "theme-secondary-button border border-zinc-300 dark:border-zinc-700"
 								}`}
 							>
 								{r === 365 ? "1y" : `${r}d`}
@@ -255,7 +255,7 @@ export function WeightView({
 								<Line
 									type="monotone"
 									dataKey="weightLbs"
-									stroke="#18181b"
+									stroke="#7c9582"
 									strokeWidth={2}
 									dot={{ r: 3 }}
 									isAnimationActive={false}
@@ -264,7 +264,7 @@ export function WeightView({
 									<Line
 										type="monotone"
 										dataKey="ma"
-										stroke="#a1a1aa"
+										stroke="#c89d67"
 										strokeWidth={2}
 										strokeDasharray="4 4"
 										dot={false}

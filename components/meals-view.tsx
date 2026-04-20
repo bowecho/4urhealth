@@ -63,14 +63,14 @@ export function MealsView({
 				<button
 					type="button"
 					onClick={() => setBuilder({ mode: "create" })}
-					className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+					className="theme-primary-button rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
 				>
 					+ New saved meal
 				</button>
 			</div>
 
 			{meals.length === 0 ? (
-				<div className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
+				<div className="theme-empty-state rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-6 py-10 text-center dark:border-zinc-700 dark:bg-zinc-950/60">
 					<p className="text-base font-medium">
 						{foods.length === 0
 							? "You need foods before meals"
@@ -87,7 +87,7 @@ export function MealsView({
 					{meals.map((m) => (
 						<li
 							key={m.id}
-							className="space-y-2 rounded-xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
+							className="theme-surface rounded-xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
 						>
 							<div className="flex items-start justify-between gap-3">
 								<div className="flex-1 min-w-0">
@@ -101,14 +101,14 @@ export function MealsView({
 									<button
 										type="button"
 										onClick={() => setApply({ meal: m })}
-										className="text-xs px-2 py-1 rounded bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+										className="theme-primary-button text-xs px-2 py-1 rounded bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
 									>
 										Log
 									</button>
 									<button
 										type="button"
 										onClick={() => setBuilder({ mode: "edit", meal: m })}
-										className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+										className="theme-secondary-button text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
 									>
 										Edit
 									</button>
@@ -116,7 +116,7 @@ export function MealsView({
 										type="button"
 										onClick={() => handleArchive(m.id)}
 										disabled={pending}
-										className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+										className="theme-secondary-button text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
 									>
 										Delete
 									</button>

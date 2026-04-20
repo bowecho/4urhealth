@@ -74,7 +74,7 @@ export function AddMealItemDialog({
 				className="absolute inset-0 bg-black/40"
 				onClick={onClose}
 			/>
-			<div className="relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4">
+			<div className="theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold">Add to {mealLabel}</h2>
 					<button
@@ -89,7 +89,7 @@ export function AddMealItemDialog({
 
 				{selected ? (
 					<div className="space-y-4">
-						<div className="rounded-md border border-zinc-200 dark:border-zinc-800 p-3">
+						<div className="theme-surface rounded-md border border-zinc-200 dark:border-zinc-800 p-3">
 							<p className="font-medium">{selected.name}</p>
 							<p className="text-xs text-zinc-500">
 								per {selected.servingSize} {selected.servingUnit}:{" "}
@@ -111,7 +111,7 @@ export function AddMealItemDialog({
 								step={0.1}
 								value={servings}
 								onChange={(e) => setServings(e.target.value)}
-								className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+								className="theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 							/>
 							<p className="mt-2 text-xs text-zinc-500">
 								Total:{" "}
@@ -138,7 +138,7 @@ export function AddMealItemDialog({
 							<button
 								type="button"
 								onClick={() => setSelected(null)}
-								className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+								className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
 							>
 								Back
 							</button>
@@ -146,7 +146,7 @@ export function AddMealItemDialog({
 								type="button"
 								onClick={handleConfirm}
 								disabled={pending || !validServings}
-								className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+								className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 							>
 								{pending ? "Adding…" : "Add"}
 							</button>
@@ -159,7 +159,7 @@ export function AddMealItemDialog({
 							placeholder="Search foods…"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
-							className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+							className="theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 						/>
 						{foods.length === 0 ? (
 							<p className="text-sm text-zinc-500 py-6 text-center">

@@ -323,8 +323,8 @@ export function SettingsView({ profile }: { profile: Profile }) {
 								onClick={() => setThemePreference(option)}
 								className={`rounded-md px-3 py-2 text-sm font-medium capitalize ${
 									active
-										? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-										: "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+										? "theme-active-pill"
+										: "text-zinc-600 hover:bg-[var(--accent-soft)] dark:text-zinc-400 dark:hover:bg-[var(--accent-soft)]"
 								}`}
 								aria-pressed={active}
 							>
@@ -344,7 +344,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 				)}
 			</SectionCard>
 
-			<div className="rounded-2xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
+			<div className="theme-surface rounded-2xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<p className="text-sm font-medium">Ready to save?</p>
@@ -358,7 +358,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 							type="button"
 							onClick={handleSave}
 							disabled={saving}
-							className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+							className="theme-primary-button rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 						>
 							{saving ? "Saving…" : "Save profile"}
 						</button>
@@ -376,7 +376,7 @@ export function SettingsView({ profile }: { profile: Profile }) {
 			>
 				<a
 					href="/settings/export"
-					className="inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+					className="theme-secondary-button inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
 				>
 					Download JSON
 				</a>
@@ -397,7 +397,7 @@ function SectionCard({
 	children: React.ReactNode;
 }) {
 	return (
-		<section className="rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
+		<section className="theme-surface rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80">
 			<div className="mb-4 space-y-1">
 				<h2 className="text-lg font-semibold tracking-tight">{title}</h2>
 				<p className="text-sm text-zinc-500">{description}</p>
@@ -408,7 +408,7 @@ function SectionCard({
 }
 
 const inputCls =
-	"w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
+	"theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
 
 function Field({
 	label,
@@ -448,7 +448,7 @@ function RecalcButton({ onRecalc }: { onRecalc: (weightLbs: number) => void }) {
 					const n = Number(weight);
 					if (Number.isFinite(n) && n > 0) onRecalc(n);
 				}}
-				className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+				className="theme-secondary-button rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
 			>
 				Recalc
 			</button>
@@ -496,7 +496,7 @@ function ImportSection() {
 				type="button"
 				onClick={() => inputRef.current?.click()}
 				disabled={pending}
-				className="inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50"
+				className="theme-secondary-button inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50"
 			>
 				{pending ? "Importing…" : "Choose JSON file"}
 			</button>

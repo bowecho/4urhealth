@@ -4,12 +4,12 @@ export default function AuthLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<main className="flex-1 bg-[radial-gradient(circle_at_top,_rgba(161,161,170,0.12),_transparent_42%)] dark:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_36%)]">
+		<main className="flex-1 bg-[radial-gradient(circle_at_top,_rgba(120,144,125,0.18),_transparent_42%),radial-gradient(circle_at_right,_rgba(199,155,97,0.12),_transparent_28%)] dark:bg-[radial-gradient(circle_at_top,_rgba(140,165,143,0.14),_transparent_38%),radial-gradient(circle_at_right,_rgba(211,171,114,0.1),_transparent_24%)]">
 			<div className="mx-auto flex min-h-full w-full max-w-5xl items-center justify-center px-6 py-12">
 				<div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
 					<section className="hidden lg:block">
 						<div className="max-w-xl space-y-5">
-							<p className="text-sm font-medium uppercase tracking-[0.24em] text-zinc-500">
+							<p className="theme-kicker text-sm font-medium uppercase tracking-[0.24em]">
 								4urhealth
 							</p>
 							<h1 className="text-5xl font-semibold tracking-tight text-balance">

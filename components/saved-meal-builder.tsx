@@ -145,7 +145,7 @@ export function SavedMealBuilder({
 				className="absolute inset-0 bg-black/40"
 				onClick={onClose}
 			/>
-			<div className="relative w-[95vw] max-w-lg rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+			<div className="theme-surface-strong relative w-[95vw] max-w-lg rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4 max-h-[85vh] overflow-y-auto">
 				<h2 className="text-lg font-semibold">
 					{initial ? "Edit saved meal" : "New saved meal"}
 				</h2>
@@ -162,7 +162,7 @@ export function SavedMealBuilder({
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
-						className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+						className="theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 					/>
 				</div>
 
@@ -183,7 +183,7 @@ export function SavedMealBuilder({
 										step={0.1}
 										value={it.servings}
 										onChange={(e) => updateServings(i, e.target.value)}
-										className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+										className="theme-input w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 										aria-label="servings"
 									/>
 									<button
@@ -222,7 +222,7 @@ export function SavedMealBuilder({
 								placeholder="Search foods…"
 								value={query}
 								onChange={(e) => setQuery(e.target.value)}
-								className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+								className="theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 							/>
 							<ul className="max-h-40 overflow-y-auto mt-1">
 								{filtered.map((f) => (
@@ -250,7 +250,7 @@ export function SavedMealBuilder({
 					<button
 						type="button"
 						onClick={onClose}
-						className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
 					>
 						Cancel
 					</button>
@@ -258,7 +258,7 @@ export function SavedMealBuilder({
 						type="button"
 						onClick={handleSave}
 						disabled={pending}
-						className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+						className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
 					>
 						{pending ? "Saving…" : "Save"}
 					</button>

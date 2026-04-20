@@ -407,12 +407,10 @@ function SectionCard({
 	);
 }
 
-const controlBaseCls =
-	"theme-input h-12 w-full rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900";
+const inputCls =
+	"theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
 
-const inputCls = `${controlBaseCls} py-0`;
-
-const selectCls = `${controlBaseCls} pr-10`;
+const selectCls = `${inputCls} h-11 pr-10`;
 
 function Field({
 	label,

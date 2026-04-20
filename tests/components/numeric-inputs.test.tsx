@@ -10,6 +10,7 @@ import { WeightView } from "@/components/weight-view";
 
 const {
 	addMealItemAction,
+	createFoodAction,
 	createSavedMealAction,
 	updateSavedMealAction,
 	deleteMealItemAction,
@@ -20,6 +21,7 @@ const {
 	saveWeightAction,
 } = vi.hoisted(() => ({
 	addMealItemAction: vi.fn(),
+	createFoodAction: vi.fn(),
 	createSavedMealAction: vi.fn(),
 	updateSavedMealAction: vi.fn(),
 	deleteMealItemAction: vi.fn(),
@@ -34,6 +36,10 @@ vi.mock("@/app/(app)/day/actions", () => ({
 	addMealItemAction,
 	deleteMealItemAction,
 	updateMealItemServingsAction,
+}));
+
+vi.mock("@/app/(app)/foods/actions", () => ({
+	createFoodAction,
 }));
 
 vi.mock("@/app/(app)/meals/actions", () => ({

@@ -28,10 +28,14 @@ export function FoodDialog({
 	initial,
 	onSubmit,
 	onCancel,
+	embedded = false,
+	title,
 }: {
 	initial: FoodDialogInitial | null;
 	onSubmit: (input: FoodInput) => Promise<void>;
 	onCancel: () => void;
+	embedded?: boolean;
+	title?: string;
 }) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [brand, setBrand] = useState(initial?.brand ?? "");
@@ -90,6 +94,164 @@ export function FoodDialog({
 		}
 	}
 
+	const form = (
+		<form
+			onSubmit={handleSubmit}
+			className={
+				embedded
+					? "space-y-4"
+					: "theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
+			}
+		>
+			<h2 className="text-lg font-semibold">
+				{title ?? (initial ? "Edit food" : "New food")}
+			</h2>
+
+			<div>
+				<label htmlFor="food-name" className={LABEL}>
+					Name
+				</label>
+				<input
+					id="food-name"
+					type="text"
+					required
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					className={INPUT}
+				/>
+			</div>
+
+			<div>
+				<label htmlFor="food-brand" className={LABEL}>
+					Brand (optional)
+				</label>
+				<input
+					id="food-brand"
+					type="text"
+					value={brand}
+					onChange={(e) => setBrand(e.target.value)}
+					className={INPUT}
+				/>
+			</div>
+
+			<div className="grid grid-cols-2 gap-3">
+				<div>
+					<label htmlFor="food-size" className={LABEL}>
+						Serving size
+					</label>
+					<input
+						id="food-size"
+						type="number"
+						min={0.01}
+						step={0.01}
+						required
+						value={servingSize}
+						onChange={(e) => setServingSize(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+				<div>
+					<label htmlFor="food-unit" className={LABEL}>
+						Unit
+					</label>
+					<input
+						id="food-unit"
+						type="text"
+						required
+						placeholder="serving, g, cup…"
+						value={servingUnit}
+						onChange={(e) => setServingUnit(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+			</div>
+
+			<div>
+				<label htmlFor="food-cal" className={LABEL}>
+					Calories per serving
+				</label>
+				<input
+					id="food-cal"
+					type="number"
+					min={0}
+					required
+					value={calories}
+					onChange={(e) => setCalories(e.target.value)}
+					className={INPUT}
+				/>
+			</div>
+
+			<div className="grid grid-cols-3 gap-3">
+				<div>
+					<label htmlFor="food-p" className={LABEL}>
+						Protein (g)
+					</label>
+					<input
+						id="food-p"
+						type="number"
+						min={0}
+						step={0.1}
+						required
+						value={proteinG}
+						onChange={(e) => setProteinG(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+				<div>
+					<label htmlFor="food-f" className={LABEL}>
+						Fat (g)
+					</label>
+					<input
+						id="food-f"
+						type="number"
+						min={0}
+						step={0.1}
+						required
+						value={fatG}
+						onChange={(e) => setFatG(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+				<div>
+					<label htmlFor="food-c" className={LABEL}>
+						Carbs (g)
+					</label>
+					<input
+						id="food-c"
+						type="number"
+						min={0}
+						step={0.1}
+						required
+						value={carbsG}
+						onChange={(e) => setCarbsG(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+			</div>
+
+			{error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+			<div className="flex gap-2 justify-end pt-2">
+				<button
+					type="button"
+					onClick={onCancel}
+					className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+				>
+					Cancel
+				</button>
+				<button
+					type="submit"
+					disabled={submitting}
+					className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+				>
+					{submitting ? "Saving…" : "Save"}
+				</button>
+			</div>
+		</form>
+	);
+
+	if (embedded) return form;
+
 	return (
 		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
 			<button
@@ -98,155 +260,7 @@ export function FoodDialog({
 				className="absolute inset-0 bg-black/40"
 				onClick={onCancel}
 			/>
-			<form
-				onSubmit={handleSubmit}
-				className="theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
-			>
-				<h2 className="text-lg font-semibold">
-					{initial ? "Edit food" : "New food"}
-				</h2>
-
-				<div>
-					<label htmlFor="food-name" className={LABEL}>
-						Name
-					</label>
-					<input
-						id="food-name"
-						type="text"
-						required
-						value={name}
-						onChange={(e) => setName(e.target.value)}
-						className={INPUT}
-					/>
-				</div>
-
-				<div>
-					<label htmlFor="food-brand" className={LABEL}>
-						Brand (optional)
-					</label>
-					<input
-						id="food-brand"
-						type="text"
-						value={brand}
-						onChange={(e) => setBrand(e.target.value)}
-						className={INPUT}
-					/>
-				</div>
-
-				<div className="grid grid-cols-2 gap-3">
-					<div>
-						<label htmlFor="food-size" className={LABEL}>
-							Serving size
-						</label>
-						<input
-							id="food-size"
-							type="number"
-							min={0.01}
-							step={0.01}
-							required
-							value={servingSize}
-							onChange={(e) => setServingSize(e.target.value)}
-							className={INPUT}
-						/>
-					</div>
-					<div>
-						<label htmlFor="food-unit" className={LABEL}>
-							Unit
-						</label>
-						<input
-							id="food-unit"
-							type="text"
-							required
-							placeholder="serving, g, cup…"
-							value={servingUnit}
-							onChange={(e) => setServingUnit(e.target.value)}
-							className={INPUT}
-						/>
-					</div>
-				</div>
-
-				<div>
-					<label htmlFor="food-cal" className={LABEL}>
-						Calories per serving
-					</label>
-					<input
-						id="food-cal"
-						type="number"
-						min={0}
-						required
-						value={calories}
-						onChange={(e) => setCalories(e.target.value)}
-						className={INPUT}
-					/>
-				</div>
-
-				<div className="grid grid-cols-3 gap-3">
-					<div>
-						<label htmlFor="food-p" className={LABEL}>
-							Protein (g)
-						</label>
-						<input
-							id="food-p"
-							type="number"
-							min={0}
-							step={0.1}
-							required
-							value={proteinG}
-							onChange={(e) => setProteinG(e.target.value)}
-							className={INPUT}
-						/>
-					</div>
-					<div>
-						<label htmlFor="food-f" className={LABEL}>
-							Fat (g)
-						</label>
-						<input
-							id="food-f"
-							type="number"
-							min={0}
-							step={0.1}
-							required
-							value={fatG}
-							onChange={(e) => setFatG(e.target.value)}
-							className={INPUT}
-						/>
-					</div>
-					<div>
-						<label htmlFor="food-c" className={LABEL}>
-							Carbs (g)
-						</label>
-						<input
-							id="food-c"
-							type="number"
-							min={0}
-							step={0.1}
-							required
-							value={carbsG}
-							onChange={(e) => setCarbsG(e.target.value)}
-							className={INPUT}
-						/>
-					</div>
-				</div>
-
-				{error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-				<div className="flex gap-2 justify-end pt-2">
-					<button
-						type="button"
-						onClick={onCancel}
-						className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={submitting}
-						className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-					>
-						{submitting ? "Saving…" : "Save"}
-					</button>
-				</div>
-			</form>
+			{form}
 		</div>
 	);
 }

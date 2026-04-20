@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { addMealItemAction } from "@/app/(app)/day/actions";
+import { createFoodAction, type FoodInput } from "@/app/(app)/foods/actions";
 import type { FoodOption } from "@/components/day-view";
+import { FoodDialog } from "@/components/food-dialog";
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 
@@ -18,8 +20,10 @@ export function AddMealItemDialog({
 	foods: FoodOption[];
 	onClose: () => void;
 }) {
+	const [availableFoods, setAvailableFoods] = useState(foods);
 	const [query, setQuery] = useState("");
 	const [selected, setSelected] = useState<FoodOption | null>(null);
+	const [creatingFood, setCreatingFood] = useState(false);
 	const [servings, setServings] = useState("1");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
@@ -38,15 +42,15 @@ export function AddMealItemDialog({
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
-		if (!q) return foods.slice(0, 50);
-		return foods
+		if (!q) return availableFoods.slice(0, 50);
+		return availableFoods
 			.filter(
 				(f) =>
 					f.name.toLowerCase().includes(q) ||
 					(f.brand?.toLowerCase().includes(q) ?? false),
 			)
 			.slice(0, 50);
-	}, [foods, query]);
+	}, [availableFoods, query]);
 
 	function handleConfirm() {
 		if (!selected) return;
@@ -64,6 +68,24 @@ export function AddMealItemDialog({
 				setError(err instanceof Error ? err.message : "Failed to add");
 			}
 		});
+	}
+
+	async function handleCreateFood(input: FoodInput) {
+		const created = await createFoodAction(input);
+		const nextFood: FoodOption = {
+			id: created.id,
+			name: created.name,
+			brand: created.brand,
+			servingSize: Number(created.servingSize),
+			servingUnit: created.servingUnit,
+			calories: created.calories,
+			proteinG: Number(created.proteinG),
+			fatG: Number(created.fatG),
+			carbsG: Number(created.carbsG),
+		};
+		setAvailableFoods((current) => [nextFood, ...current]);
+		setSelected(nextFood);
+		setCreatingFood(false);
 	}
 
 	return (
@@ -87,7 +109,24 @@ export function AddMealItemDialog({
 					</button>
 				</div>
 
-				{selected ? (
+				{creatingFood ? (
+					<FoodDialog
+						embedded
+						title="New food"
+						initial={{
+							name: query.trim(),
+							brand: "",
+							servingSize: 1,
+							servingUnit: "serving",
+							calories: 0,
+							proteinG: 0,
+							fatG: 0,
+							carbsG: 0,
+						}}
+						onCancel={() => setCreatingFood(false)}
+						onSubmit={handleCreateFood}
+					/>
+				) : selected ? (
 					<div className="space-y-4">
 						<div className="theme-surface rounded-md border border-zinc-200 dark:border-zinc-800 p-3">
 							<p className="font-medium">{selected.name}</p>
@@ -161,9 +200,21 @@ export function AddMealItemDialog({
 							onChange={(e) => setQuery(e.target.value)}
 							className="theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 						/>
-						{foods.length === 0 ? (
+						<div className="flex items-center justify-between gap-2">
+							<p className="text-xs text-zinc-500">
+								Can&apos;t find it? Create a food without leaving this screen.
+							</p>
+							<button
+								type="button"
+								onClick={() => setCreatingFood(true)}
+								className="theme-secondary-button shrink-0 rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+							>
+								+ New food
+							</button>
+						</div>
+						{availableFoods.length === 0 ? (
 							<p className="text-sm text-zinc-500 py-6 text-center">
-								No foods yet. Add one on the Foods page first.
+								No foods yet. Create one to get started.
 							</p>
 						) : filtered.length === 0 ? (
 							<p className="text-sm text-zinc-500 py-6 text-center">

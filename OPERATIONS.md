@@ -37,6 +37,14 @@ If that drill fails, treat recovery as broken even if production still looks hea
 
 ## Deploy Checklist
 
+GitHub now runs a lightweight CI workflow before merge on pull requests:
+
+1. `pnpm lint`
+2. `pnpm typecheck`
+3. `pnpm test:run`
+
+That CI is not a full deploy substitute. Keep the broader manual checklist below for releases.
+
 Before deploy:
 
 1. Run `pnpm lint`

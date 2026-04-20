@@ -81,4 +81,24 @@ test.describe
 			await expect(page.getByText("Greek Yogurt")).toBeVisible();
 			await expect(page.getByText(/130 cal/)).toBeVisible();
 		});
+
+		test("user can log weight and see it reflected in stats", async ({
+			page,
+		}) => {
+			await signIn(page, credentials);
+
+			await page.getByRole("link", { name: "Weight" }).click();
+			await expect(page.getByRole("heading", { name: "Weight" })).toBeVisible();
+			await page.getByLabel("Weight (lb)").fill("204.2");
+			await page.getByRole("button", { name: "Save" }).click();
+			await expect(page.getByText("204.2 lb").first()).toBeVisible();
+
+			await page.getByRole("link", { name: "Stats" }).click();
+			await expect(page.getByRole("heading", { name: "Stats" })).toBeVisible();
+			await expect(page.getByText("Days logged")).toBeVisible();
+			const weightSection = page.locator("section").filter({
+				hasText: "Weight change",
+			});
+			await expect(weightSection).toContainText("204.2");
+		});
 	});

@@ -39,6 +39,18 @@ pnpm test:e2e
 pnpm build
 ```
 
+## CI
+
+GitHub Actions runs a lightweight CI workflow on pull requests and pushes to `main`:
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test:run`
+
+The workflow file is [`.github/workflows/ci.yml`](/Users/tonyc/src/4urhealth/.github/workflows/ci.yml:1).
+
+This is intentionally narrower than the full local deploy checklist. Browser e2e coverage still exists, but it is not part of the default GitHub Actions gate for this repo today.
+
 ## Database Workflow
 
 Use versioned Drizzle migrations for schema changes. Do not use direct schema push against production.
@@ -67,6 +79,12 @@ pnpm db:push:unsafe
 ## Deployment
 
 Pushes to `main` deploy to Vercel production. Preview deployments are created for non-`main` branches.
+
+Recommended repo protection:
+
+1. Require pull requests for `main`
+2. Mark the GitHub Actions `verify` job as a required status check
+3. Avoid direct pushes to `main`
 
 The production build uses:
 

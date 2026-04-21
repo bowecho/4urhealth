@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { addMealItemAction } from "@/app/(app)/day/actions";
+import {
+	addMealItemAction,
+	addOneTimeMealItemAction,
+} from "@/app/(app)/day/actions";
 import { createFoodAction, type FoodInput } from "@/app/(app)/foods/actions";
 import type { FoodOption } from "@/components/day-view";
 import { FoodDialog } from "@/components/food-dialog";
@@ -20,10 +23,12 @@ export function AddMealItemDialog({
 	foods: FoodOption[];
 	onClose: () => void;
 }) {
+	const [createMode, setCreateMode] = useState<"saved" | "one-time" | null>(
+		null,
+	);
 	const [availableFoods, setAvailableFoods] = useState(foods);
 	const [query, setQuery] = useState("");
 	const [selected, setSelected] = useState<FoodOption | null>(null);
-	const [creatingFood, setCreatingFood] = useState(false);
 	const [servings, setServings] = useState("1");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
@@ -85,7 +90,22 @@ export function AddMealItemDialog({
 		};
 		setAvailableFoods((current) => [nextFood, ...current]);
 		setSelected(nextFood);
-		setCreatingFood(false);
+		setCreateMode(null);
+	}
+
+	async function handleCreateOneTimeFood(input: FoodInput) {
+		const parsedServings =
+			servings.trim() === "" ? Number.NaN : Number(servings);
+		if (!Number.isFinite(parsedServings) || parsedServings < 0.01) {
+			throw new Error("Servings must be at least 0.01");
+		}
+		await addOneTimeMealItemAction({
+			date,
+			mealType,
+			servings: parsedServings,
+			...input,
+		});
+		onClose();
 	}
 
 	return (
@@ -109,10 +129,11 @@ export function AddMealItemDialog({
 					</button>
 				</div>
 
-				{creatingFood ? (
+				{createMode === "saved" ? (
 					<FoodDialog
 						embedded
 						title="New food"
+						submitLabel="Save food"
 						initial={{
 							name: query.trim(),
 							brand: "",
@@ -123,8 +144,31 @@ export function AddMealItemDialog({
 							fatG: 0,
 							carbsG: 0,
 						}}
-						onCancel={() => setCreatingFood(false)}
+						onCancel={() => setCreateMode(null)}
 						onSubmit={handleCreateFood}
+					/>
+				) : createMode === "one-time" ? (
+					<FoodDialog
+						embedded
+						title="One-time food"
+						description={`Adds this only to ${mealLabel.toLowerCase()} and won’t save it to your foods list.`}
+						submitLabel={`Add to ${mealLabel}`}
+						servingsField={{
+							value: servings,
+							onChange: setServings,
+						}}
+						initial={{
+							name: query.trim(),
+							brand: "",
+							servingSize: 1,
+							servingUnit: "serving",
+							calories: 0,
+							proteinG: 0,
+							fatG: 0,
+							carbsG: 0,
+						}}
+						onCancel={() => setCreateMode(null)}
+						onSubmit={handleCreateOneTimeFood}
 					/>
 				) : selected ? (
 					<div className="space-y-4">
@@ -204,13 +248,22 @@ export function AddMealItemDialog({
 							<p className="text-xs text-zinc-500">
 								Can&apos;t find it? Create a food without leaving this screen.
 							</p>
-							<button
-								type="button"
-								onClick={() => setCreatingFood(true)}
-								className="theme-secondary-button shrink-0 rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-							>
-								+ New food
-							</button>
+							<div className="flex shrink-0 gap-2">
+								<button
+									type="button"
+									onClick={() => setCreateMode("saved")}
+									className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+								>
+									+ New food
+								</button>
+								<button
+									type="button"
+									onClick={() => setCreateMode("one-time")}
+									className="theme-secondary-button rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+								>
+									+ One-time food
+								</button>
+							</div>
 						</div>
 						{availableFoods.length === 0 ? (
 							<p className="text-sm text-zinc-500 py-6 text-center">

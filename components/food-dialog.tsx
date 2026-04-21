@@ -30,12 +30,22 @@ export function FoodDialog({
 	onCancel,
 	embedded = false,
 	title,
+	description,
+	submitLabel,
+	servingsField,
 }: {
 	initial: FoodDialogInitial | null;
 	onSubmit: (input: FoodInput) => Promise<void>;
 	onCancel: () => void;
 	embedded?: boolean;
 	title?: string;
+	description?: string;
+	submitLabel?: string;
+	servingsField?: {
+		value: string;
+		onChange: (value: string) => void;
+		label?: string;
+	};
 }) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [brand, setBrand] = useState(initial?.brand ?? "");
@@ -106,6 +116,11 @@ export function FoodDialog({
 			<h2 className="text-lg font-semibold">
 				{title ?? (initial ? "Edit food" : "New food")}
 			</h2>
+			{description ? (
+				<p className="text-sm text-zinc-500 dark:text-zinc-400">
+					{description}
+				</p>
+			) : null}
 
 			<div>
 				<label htmlFor="food-name" className={LABEL}>
@@ -165,6 +180,24 @@ export function FoodDialog({
 					/>
 				</div>
 			</div>
+
+			{servingsField ? (
+				<div>
+					<label htmlFor="food-servings" className={LABEL}>
+						{servingsField.label ?? "Servings"}
+					</label>
+					<input
+						id="food-servings"
+						type="number"
+						min={0.01}
+						step={0.1}
+						required
+						value={servingsField.value}
+						onChange={(e) => servingsField.onChange(e.target.value)}
+						className={INPUT}
+					/>
+				</div>
+			) : null}
 
 			<div>
 				<label htmlFor="food-cal" className={LABEL}>
@@ -244,7 +277,7 @@ export function FoodDialog({
 					disabled={submitting}
 					className="theme-primary-button rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
 				>
-					{submitting ? "Saving…" : "Save"}
+					{submitting ? "Saving…" : (submitLabel ?? "Save")}
 				</button>
 			</div>
 		</form>

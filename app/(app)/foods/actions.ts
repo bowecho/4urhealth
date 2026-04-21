@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { foodItem } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
 
-const FoodSchema = z.object({
+export const FoodSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	brand: z
 		.string()

@@ -183,7 +183,7 @@ export function SavedMealBuilder({
 										value={it.servings}
 										onChange={(value) => updateServings(i, value)}
 										min={0.01}
-										inputClassName="theme-input w-full rounded-md border border-zinc-300 px-2 py-1 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+										inputClassName="theme-input h-11 w-full rounded-md border border-zinc-300 px-2 py-2 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 										wrapperClassName="w-24"
 									/>
 									<button

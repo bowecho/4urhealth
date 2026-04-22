@@ -94,7 +94,7 @@ export function MealCard({
 										value={editingServings}
 										onChange={setEditingServings}
 										min={0.01}
-										inputClassName="w-full rounded-md border border-zinc-300 px-2 py-1 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+										inputClassName="h-11 w-full rounded-md border border-zinc-300 px-2 py-2 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 										wrapperClassName="w-24"
 									/>
 									<button

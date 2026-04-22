@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useState, useTransition } from "react";
 import {
 	addMealItemAction,
 	addOneTimeMealItemAction,
@@ -8,6 +8,7 @@ import { createFoodAction } from "@/app/(app)/foods/actions";
 import type { FoodInput } from "@/app/(app)/foods/schema";
 import type { FoodOption } from "@/components/day-view";
 import { FoodDialog } from "@/components/food-dialog";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 
@@ -33,6 +34,7 @@ export function AddMealItemDialog({
 	const [servings, setServings] = useState("1");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
+	const servingsId = useId();
 	const parsedServings = servings.trim() === "" ? Number.NaN : Number(servings);
 	const validServings =
 		Number.isFinite(parsedServings) && parsedServings >= 0.01;
@@ -182,19 +184,18 @@ export function AddMealItemDialog({
 						</div>
 						<div>
 							<label
-								htmlFor="servings"
+								htmlFor={servingsId}
 								className="block text-xs font-medium mb-1 text-zinc-600 dark:text-zinc-400"
 							>
 								Servings
 							</label>
-							<input
-								id="servings"
-								type="number"
-								min={0.01}
-								step={0.1}
+							<SteppableNumberInput
+								id={servingsId}
 								value={servings}
-								onChange={(e) => setServings(e.target.value)}
-								className="theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+								onChange={setServings}
+								min={0.01}
+								inputClassName="theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+								wrapperClassName="w-full"
 							/>
 							<p className="mt-2 text-xs text-zinc-500">
 								Total:{" "}

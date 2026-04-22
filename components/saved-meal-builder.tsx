@@ -6,6 +6,7 @@ import {
 } from "@/app/(app)/meals/actions";
 import type { FoodOption } from "@/components/day-view";
 import type { SavedMealDetail } from "@/components/meals-view";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 
 type DraftItem = {
 	key: string;
@@ -177,14 +178,13 @@ export function SavedMealBuilder({
 							{items.map((it, i) => (
 								<li key={it.key} className="flex items-center gap-2 text-sm">
 									<span className="flex-1 truncate">{it.foodName}</span>
-									<input
-										type="number"
-										min={0.01}
-										step={0.1}
+									<SteppableNumberInput
+										ariaLabel="servings"
 										value={it.servings}
-										onChange={(e) => updateServings(i, e.target.value)}
-										className="theme-input w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-										aria-label="servings"
+										onChange={(value) => updateServings(i, value)}
+										min={0.01}
+										inputClassName="theme-input w-full rounded-md border border-zinc-300 px-2 py-1 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+										wrapperClassName="w-24"
 									/>
 									<button
 										type="button"

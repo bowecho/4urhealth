@@ -91,9 +91,68 @@ describe("numeric input regressions", () => {
 
 		const carbs = screen.getByLabelText("Carbs (g)");
 		fireEvent.change(carbs, { target: { value: "" } });
-		expect(carbs).toHaveValue(null);
+		expect(carbs).toHaveValue("");
 		fireEvent.change(carbs, { target: { value: "7" } });
-		expect(carbs).toHaveValue(7);
+		expect(carbs).toHaveValue("7");
+	});
+
+	it("steps one-time food decimal fields by one and clamps at the minimum", () => {
+		render(
+			<AddMealItemDialog
+				date="2026-04-20"
+				mealType="dinner"
+				mealLabel="Dinner"
+				onClose={vi.fn()}
+				foods={[]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "+ One-time food" }));
+
+		const servingSize = screen.getByLabelText("Serving size");
+		const servingSizeField = servingSize.closest("div");
+		expect(servingSizeField).not.toBeNull();
+		if (!servingSizeField) throw new Error("Expected serving size field");
+		fireEvent.click(
+			within(servingSizeField).getByRole("button", { name: "Increase" }),
+		);
+		expect(servingSize).toHaveValue("2");
+		fireEvent.click(
+			within(servingSizeField).getByRole("button", { name: "Decrease" }),
+		);
+		expect(servingSize).toHaveValue("1");
+		fireEvent.click(
+			within(servingSizeField).getByRole("button", { name: "Decrease" }),
+		);
+		expect(servingSize).toHaveValue("0.01");
+
+		const servings = screen.getByLabelText("Servings");
+		const servingsField = servings.closest("div");
+		expect(servingsField).not.toBeNull();
+		if (!servingsField) throw new Error("Expected servings field");
+		fireEvent.click(
+			within(servingsField).getByRole("button", { name: "Increase" }),
+		);
+		expect(servings).toHaveValue("2");
+		fireEvent.change(servings, { target: { value: "1.25" } });
+		expect(servings).toHaveValue("1.25");
+		fireEvent.click(
+			within(servingsField).getByRole("button", { name: "Increase" }),
+		);
+		expect(servings).toHaveValue("2.25");
+
+		const protein = screen.getByLabelText("Protein (g)");
+		const proteinField = protein.closest("div");
+		expect(proteinField).not.toBeNull();
+		if (!proteinField) throw new Error("Expected protein field");
+		fireEvent.click(
+			within(proteinField).getByRole("button", { name: "Increase" }),
+		);
+		expect(protein).toHaveValue("1");
+		fireEvent.click(
+			within(proteinField).getByRole("button", { name: "Decrease" }),
+		);
+		expect(protein).toHaveValue("0");
 	});
 
 	it("lets add-meal servings clear and retype cleanly", () => {
@@ -124,9 +183,9 @@ describe("numeric input regressions", () => {
 		);
 		const servings = screen.getByLabelText("Servings");
 		fireEvent.change(servings, { target: { value: "" } });
-		expect(servings).toHaveValue(null);
+		expect(servings).toHaveValue("");
 		fireEvent.change(servings, { target: { value: "2" } });
-		expect(servings).toHaveValue(2);
+		expect(servings).toHaveValue("2");
 	});
 
 	it("submits one-time foods without creating a saved food", async () => {
@@ -183,6 +242,60 @@ describe("numeric input regressions", () => {
 		expect(createFoodAction).not.toHaveBeenCalled();
 	});
 
+	it("accepts an integer one-time servings value without browser step validation", () => {
+		addOneTimeMealItemAction.mockResolvedValue(undefined);
+		render(
+			<AddMealItemDialog
+				date="2026-04-20"
+				mealType="dinner"
+				mealLabel="Dinner"
+				onClose={vi.fn()}
+				foods={[]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "+ One-time food" }));
+		fireEvent.change(screen.getByLabelText("Name"), {
+			target: { value: "Beef Crunchy Tacos" },
+		});
+		fireEvent.change(screen.getByLabelText("Calories per serving"), {
+			target: { value: "200" },
+		});
+		fireEvent.change(screen.getByLabelText("Protein (g)"), {
+			target: { value: "12" },
+		});
+		fireEvent.change(screen.getByLabelText("Fat (g)"), {
+			target: { value: "10" },
+		});
+		fireEvent.change(screen.getByLabelText("Carbs (g)"), {
+			target: { value: "15" },
+		});
+		fireEvent.change(screen.getByLabelText("Servings"), {
+			target: { value: "1" },
+		});
+
+		const form = screen
+			.getByRole("button", { name: "Add to Dinner" })
+			.closest("form");
+		expect(form).not.toBeNull();
+		if (!form) throw new Error("Expected one-time food form");
+		fireEvent.submit(form);
+
+		expect(addOneTimeMealItemAction).toHaveBeenCalledWith({
+			date: "2026-04-20",
+			mealType: "dinner",
+			name: "Beef Crunchy Tacos",
+			brand: undefined,
+			servingSize: 1,
+			servingUnit: "serving",
+			calories: 200,
+			proteinG: 12,
+			fatG: 10,
+			carbsG: 15,
+			servings: 1,
+		});
+	});
+
 	it("lets saved meals and meal edits clear servings without a forced zero", () => {
 		render(
 			<SavedMealBuilder
@@ -207,9 +320,41 @@ describe("numeric input regressions", () => {
 		fireEvent.click(screen.getByRole("button", { name: /Greek Yogurt/ }));
 		const builderServings = screen.getByLabelText("servings");
 		fireEvent.change(builderServings, { target: { value: "" } });
-		expect(builderServings).toHaveValue(null);
+		expect(builderServings).toHaveValue("");
 		fireEvent.change(builderServings, { target: { value: "2.5" } });
-		expect(builderServings).toHaveValue(2.5);
+		expect(builderServings).toHaveValue("2.5");
+	});
+
+	it("steps saved-meal servings by one without invalidating integers", () => {
+		render(
+			<SavedMealBuilder
+				initial={null}
+				onClose={vi.fn()}
+				foods={[
+					{
+						id: "food-1",
+						name: "Greek Yogurt",
+						brand: "Fage",
+						servingSize: 1,
+						servingUnit: "container",
+						calories: 130,
+						proteinG: 23,
+						fatG: 0,
+						carbsG: 9,
+					},
+				]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: /Greek Yogurt/ }));
+		const builderServings = screen.getByLabelText("servings");
+		const builderField = builderServings.closest("div");
+		expect(builderField).not.toBeNull();
+		if (!builderField) throw new Error("Expected saved meal servings field");
+		fireEvent.click(
+			within(builderField).getByRole("button", { name: "Increase" }),
+		);
+		expect(builderServings).toHaveValue("2");
 	});
 
 	it("lets meal-card edit servings clear and re-enter a number", () => {
@@ -237,9 +382,40 @@ describe("numeric input regressions", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 		const servings = screen.getByLabelText("servings");
 		fireEvent.change(servings, { target: { value: "" } });
-		expect(servings).toHaveValue(null);
+		expect(servings).toHaveValue("");
 		fireEvent.change(servings, { target: { value: "2" } });
-		expect(servings).toHaveValue(2);
+		expect(servings).toHaveValue("2");
+	});
+
+	it("steps meal-card servings by one without going below the minimum", () => {
+		render(
+			<MealCard
+				date="2026-04-20"
+				mealType="breakfast"
+				label="Breakfast"
+				foods={[]}
+				items={[
+					{
+						id: "meal-item-1",
+						foodItemId: "food-1",
+						name: "Greek Yogurt",
+						servings: 1,
+						calories: 130,
+						proteinG: 23,
+						fatG: 0,
+						carbsG: 9,
+					},
+				]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+		const servings = screen.getByLabelText("servings");
+		const field = servings.closest("div");
+		expect(field).not.toBeNull();
+		if (!field) throw new Error("Expected meal card servings field");
+		fireEvent.click(within(field).getByRole("button", { name: "Decrease" }));
+		expect(servings).toHaveValue("0.01");
 	});
 
 	it("does not offer edit for one-time meal items", () => {
@@ -304,9 +480,17 @@ describe("numeric input regressions", () => {
 
 		const height = within(profileSection).getByDisplayValue("70");
 		fireEvent.change(height, { target: { value: "" } });
-		expect(height).toHaveValue(null);
+		expect(height).toHaveValue("");
 		fireEvent.change(height, { target: { value: "72" } });
-		expect(height).toHaveValue(72);
+		expect(height).toHaveValue("72");
+
+		const heightField = height.closest("div");
+		expect(heightField).not.toBeNull();
+		if (!heightField) throw new Error("Expected height field");
+		fireEvent.click(
+			within(heightField).getByRole("button", { name: "Increase" }),
+		);
+		expect(height).toHaveValue("73");
 
 		unmount();
 
@@ -322,8 +506,15 @@ describe("numeric input regressions", () => {
 
 		const weight = screen.getByLabelText("Weight (lb)");
 		fireEvent.change(weight, { target: { value: "" } });
-		expect(weight).toHaveValue(null);
+		expect(weight).toHaveValue("");
 		fireEvent.change(weight, { target: { value: "205.4" } });
-		expect(weight).toHaveValue(205.4);
+		expect(weight).toHaveValue("205.4");
+		const weightField = weight.closest("div");
+		expect(weightField).not.toBeNull();
+		if (!weightField) throw new Error("Expected weight field");
+		fireEvent.click(
+			within(weightField).getByRole("button", { name: "Increase" }),
+		);
+		expect(weight).toHaveValue("206.4");
 	});
 });

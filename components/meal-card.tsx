@@ -1,11 +1,12 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import {
 	deleteMealItemAction,
 	updateMealItemServingsAction,
 } from "@/app/(app)/day/actions";
 import { AddMealItemDialog } from "@/components/add-meal-item-dialog";
 import type { FoodOption, MealItem } from "@/components/day-view";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 
@@ -26,6 +27,7 @@ export function MealCard({
 	const [pending, startTransition] = useTransition();
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editingServings, setEditingServings] = useState("1");
+	const servingsId = useId();
 
 	const totalCal = items.reduce((s, i) => s + i.calories, 0);
 
@@ -86,14 +88,14 @@ export function MealCard({
 							{editingId === item.id ? (
 								<div className="flex items-center gap-2">
 									<span className="flex-1 text-sm">{item.name}</span>
-									<input
-										type="number"
-										min={0.01}
-										step={0.1}
+									<SteppableNumberInput
+										id={servingsId}
+										ariaLabel="servings"
 										value={editingServings}
-										onChange={(e) => setEditingServings(e.target.value)}
-										className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-										aria-label="servings"
+										onChange={setEditingServings}
+										min={0.01}
+										inputClassName="w-full rounded-md border border-zinc-300 px-2 py-1 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+										wrapperClassName="w-24"
 									/>
 									<button
 										type="button"

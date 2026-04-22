@@ -120,13 +120,15 @@ export function MealCard({
 											{item.proteinG}g · F {item.fatG}g · C {item.carbsG}g
 										</p>
 									</div>
-									<button
-										type="button"
-										onClick={() => startEdit(item)}
-										className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-									>
-										Edit
-									</button>
+									{item.foodItemId ? (
+										<button
+											type="button"
+											onClick={() => startEdit(item)}
+											className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+										>
+											Edit
+										</button>
+									) : null}
 									<button
 										type="button"
 										onClick={() => handleDelete(item.id)}

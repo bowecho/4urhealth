@@ -2,6 +2,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { FoodSchema } from "@/app/(app)/foods/schema";
 import { db } from "@/db";
 import { foodItem, mealLog, mealLogItem } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
@@ -49,6 +50,49 @@ export async function addMealItemAction(
 			foodItemId: food.id,
 			servings: parsed.servings.toString(),
 			nameSnapshot: food.name,
+			caloriesSnapshot,
+			proteinGSnapshot,
+			fatGSnapshot,
+			carbsGSnapshot,
+		});
+	});
+
+	revalidatePath("/");
+	revalidatePath(`/day/${parsed.date}`);
+}
+
+const AddOneTimeMealItemSchema = FoodSchema.extend({
+	date: z.string().refine(isIsoDate, "Invalid date"),
+	mealType: MealTypeEnum,
+	servings: z.number().min(0.01).max(100),
+});
+
+export async function addOneTimeMealItemAction(
+	input: z.input<typeof AddOneTimeMealItemSchema>,
+) {
+	const userId = await requireUserId();
+	const parsed = AddOneTimeMealItemSchema.parse(input);
+
+	const caloriesSnapshot = Math.round(parsed.calories * parsed.servings);
+	const proteinGSnapshot = (parsed.proteinG * parsed.servings).toFixed(1);
+	const fatGSnapshot = (parsed.fatG * parsed.servings).toFixed(1);
+	const carbsGSnapshot = (parsed.carbsG * parsed.servings).toFixed(1);
+
+	await db.transaction(async (tx) => {
+		const [log] = await tx
+			.insert(mealLog)
+			.values({ userId, date: parsed.date, mealType: parsed.mealType })
+			.onConflictDoUpdate({
+				target: [mealLog.userId, mealLog.date, mealLog.mealType],
+				set: { updatedAt: new Date() },
+			})
+			.returning({ id: mealLog.id });
+
+		await tx.insert(mealLogItem).values({
+			mealLogId: log.id,
+			foodItemId: null,
+			servings: parsed.servings.toString(),
+			nameSnapshot: parsed.name,
 			caloriesSnapshot,
 			proteinGSnapshot,
 			fatGSnapshot,

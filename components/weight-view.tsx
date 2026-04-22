@@ -4,7 +4,6 @@ import {
 	CartesianGrid,
 	Line,
 	LineChart,
-	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
@@ -220,59 +219,58 @@ export function WeightView({
 							No entries in this range.
 						</div>
 					) : (
-						<ResponsiveContainer width="100%" height="100%">
-							<LineChart
-								data={chartData}
-								margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
-							>
-								<CartesianGrid
-									strokeDasharray="3 3"
-									className="stroke-zinc-200 dark:stroke-zinc-800"
-								/>
-								<XAxis
-									dataKey="date"
-									tickFormatter={(d: string) => d.slice(5)}
-									tick={{ fontSize: 11 }}
-									minTickGap={24}
-								/>
-								<YAxis
-									domain={["auto", "auto"]}
-									tick={{ fontSize: 11 }}
-									width={40}
-									allowDecimals={false}
-								/>
-								<Tooltip
-									contentStyle={{ fontSize: 12 }}
-									formatter={(value, name) => {
-										const num =
-											typeof value === "number" ? value : Number(value);
-										return [
-											Number.isFinite(num) ? `${num.toFixed(1)} lb` : "—",
-											name === "ma" ? "7-day avg" : "Weight",
-										];
-									}}
-								/>
+						<LineChart
+							responsive
+							data={chartData}
+							margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
+							style={{ width: "100%", height: "100%" }}
+						>
+							<CartesianGrid
+								strokeDasharray="3 3"
+								className="stroke-zinc-200 dark:stroke-zinc-800"
+							/>
+							<XAxis
+								dataKey="date"
+								tickFormatter={(d: string) => d.slice(5)}
+								tick={{ fontSize: 11 }}
+								minTickGap={24}
+							/>
+							<YAxis
+								domain={["auto", "auto"]}
+								tick={{ fontSize: 11 }}
+								width={40}
+								allowDecimals={false}
+							/>
+							<Tooltip
+								contentStyle={{ fontSize: 12 }}
+								formatter={(value, name) => {
+									const num = typeof value === "number" ? value : Number(value);
+									return [
+										Number.isFinite(num) ? `${num.toFixed(1)} lb` : "—",
+										name === "ma" ? "7-day avg" : "Weight",
+									];
+								}}
+							/>
+							<Line
+								type="monotone"
+								dataKey="weightLbs"
+								stroke="#7c9582"
+								strokeWidth={2}
+								dot={{ r: 3 }}
+								isAnimationActive={false}
+							/>
+							{showMA ? (
 								<Line
 									type="monotone"
-									dataKey="weightLbs"
-									stroke="#7c9582"
+									dataKey="ma"
+									stroke="#c89d67"
 									strokeWidth={2}
-									dot={{ r: 3 }}
+									strokeDasharray="4 4"
+									dot={false}
 									isAnimationActive={false}
 								/>
-								{showMA ? (
-									<Line
-										type="monotone"
-										dataKey="ma"
-										stroke="#c89d67"
-										strokeWidth={2}
-										strokeDasharray="4 4"
-										dot={false}
-										isAnimationActive={false}
-									/>
-								) : null}
-							</LineChart>
-						</ResponsiveContainer>
+							) : null}
+						</LineChart>
 					)}
 				</div>
 			</section>

@@ -10,6 +10,7 @@ import { WeightView } from "@/components/weight-view";
 
 const {
 	addMealItemAction,
+	addOneTimeMealItemAction,
 	createFoodAction,
 	createSavedMealAction,
 	updateSavedMealAction,
@@ -21,6 +22,7 @@ const {
 	saveWeightAction,
 } = vi.hoisted(() => ({
 	addMealItemAction: vi.fn(),
+	addOneTimeMealItemAction: vi.fn(),
 	createFoodAction: vi.fn(),
 	createSavedMealAction: vi.fn(),
 	updateSavedMealAction: vi.fn(),
@@ -34,6 +36,7 @@ const {
 
 vi.mock("@/app/(app)/day/actions", () => ({
 	addMealItemAction,
+	addOneTimeMealItemAction,
 	deleteMealItemAction,
 	updateMealItemServingsAction,
 }));
@@ -126,6 +129,60 @@ describe("numeric input regressions", () => {
 		expect(servings).toHaveValue(2);
 	});
 
+	it("submits one-time foods without creating a saved food", async () => {
+		addOneTimeMealItemAction.mockResolvedValue(undefined);
+		render(
+			<AddMealItemDialog
+				date="2026-04-20"
+				mealType="lunch"
+				mealLabel="Lunch"
+				onClose={vi.fn()}
+				foods={[]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "+ One-time food" }));
+		fireEvent.change(screen.getByLabelText("Name"), {
+			target: { value: "Birthday Cake" },
+		});
+		fireEvent.change(screen.getByLabelText("Calories per serving"), {
+			target: { value: "320" },
+		});
+		fireEvent.change(screen.getByLabelText("Protein (g)"), {
+			target: { value: "4" },
+		});
+		fireEvent.change(screen.getByLabelText("Fat (g)"), {
+			target: { value: "14" },
+		});
+		fireEvent.change(screen.getByLabelText("Carbs (g)"), {
+			target: { value: "48" },
+		});
+		fireEvent.change(screen.getByLabelText("Servings"), {
+			target: { value: "1.5" },
+		});
+		const form = screen
+			.getByRole("button", { name: "Add to Lunch" })
+			.closest("form");
+		expect(form).not.toBeNull();
+		if (!form) throw new Error("Expected one-time food form");
+		fireEvent.submit(form);
+
+		expect(addOneTimeMealItemAction).toHaveBeenCalledWith({
+			date: "2026-04-20",
+			mealType: "lunch",
+			name: "Birthday Cake",
+			brand: undefined,
+			servingSize: 1,
+			servingUnit: "serving",
+			calories: 320,
+			proteinG: 4,
+			fatG: 14,
+			carbsG: 48,
+			servings: 1.5,
+		});
+		expect(createFoodAction).not.toHaveBeenCalled();
+	});
+
 	it("lets saved meals and meal edits clear servings without a forced zero", () => {
 		render(
 			<SavedMealBuilder
@@ -183,6 +240,34 @@ describe("numeric input regressions", () => {
 		expect(servings).toHaveValue(null);
 		fireEvent.change(servings, { target: { value: "2" } });
 		expect(servings).toHaveValue(2);
+	});
+
+	it("does not offer edit for one-time meal items", () => {
+		render(
+			<MealCard
+				date="2026-04-20"
+				mealType="breakfast"
+				label="Breakfast"
+				foods={[]}
+				items={[
+					{
+						id: "meal-item-1",
+						foodItemId: null,
+						name: "Office Donut",
+						servings: 1,
+						calories: 260,
+						proteinG: 3,
+						fatG: 14,
+						carbsG: 31,
+					},
+				]}
+			/>,
+		);
+
+		expect(
+			screen.queryByRole("button", { name: "Edit" }),
+		).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
 	});
 
 	it("lets settings and weight fields clear without reintroducing leading zeros", () => {

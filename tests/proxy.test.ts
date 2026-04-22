@@ -59,6 +59,17 @@ describe("proxy auth protection", () => {
 		expect(response.headers.get("x-middleware-next")).toBe("1");
 	});
 
+	it("allows the playwright cleanup API through the proxy without a session", async () => {
+		getSessionCookie.mockReturnValue(null);
+		const { proxy } = await loadProxy("1");
+
+		const response = await proxy(
+			new NextRequest("https://4urhealth.vercel.app/api/e2e/test-user"),
+		);
+
+		expect(response.headers.get("x-middleware-next")).toBe("1");
+	});
+
 	it("redirects authenticated users away from public auth routes", async () => {
 		getSessionCookie.mockReturnValue("session-token");
 		const { proxy } = await loadProxy();

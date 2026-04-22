@@ -169,6 +169,7 @@ export async function GET() {
 		headers: {
 			"Content-Type": "application/json",
 			"Content-Disposition": `attachment; filename="4urhealth-${today}.json"`,
+			"Cache-Control": "private, no-store, max-age=0",
 		},
 	});
 }

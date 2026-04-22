@@ -14,7 +14,7 @@ import {
 	weightLog,
 } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
-import { isIsoDate } from "@/lib/date";
+import { isIsoDate, isValidTimeZone } from "@/lib/date";
 import { THEME_COOKIE_NAME, type ThemePreference } from "@/lib/theme";
 
 const ProfileSchema = z.object({
@@ -34,7 +34,7 @@ const ProfileSchema = z.object({
 	targetProteinG: z.number().int().min(0).max(500),
 	targetFatG: z.number().int().min(0).max(300),
 	targetCarbsG: z.number().int().min(0).max(800),
-	timezone: z.string().min(1),
+	timezone: z.string().trim().refine(isValidTimeZone, "Invalid timezone"),
 	themePreference: z.enum(["light", "dark"]),
 });
 

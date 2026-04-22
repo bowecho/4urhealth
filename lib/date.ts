@@ -1,12 +1,35 @@
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SUPPORTED_TIME_ZONES =
+	typeof Intl.supportedValuesOf === "function"
+		? new Set(Intl.supportedValuesOf("timeZone"))
+		: null;
 
 export function isIsoDate(s: string): boolean {
 	return DATE_RE.test(s);
 }
 
+export function isValidTimeZone(timezone: string): boolean {
+	const value = timezone.trim();
+	if (value === "UTC") return true;
+	if (value.length === 0) return false;
+	if (SUPPORTED_TIME_ZONES) return SUPPORTED_TIME_ZONES.has(value);
+
+	try {
+		return (
+			new Intl.DateTimeFormat("en-US", { timeZone: value }).resolvedOptions()
+				.timeZone === value
+		);
+	} catch {
+		return false;
+	}
+}
+
 export function todayInTz(timezone: string, now: Date = new Date()): string {
+	const safeTimezone = isValidTimeZone(timezone.trim())
+		? timezone.trim()
+		: "UTC";
 	const fmt = new Intl.DateTimeFormat("en-CA", {
-		timeZone: timezone,
+		timeZone: safeTimezone,
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",

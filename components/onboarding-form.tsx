@@ -1,7 +1,8 @@
 "use client";
 import { unstable_rethrow } from "next/navigation";
-import { type FormEvent, useMemo, useState, useTransition } from "react";
+import { type FormEvent, useId, useMemo, useState, useTransition } from "react";
 import { saveOnboardingAction } from "@/app/onboarding/actions";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 import {
 	ACTIVITY_LABELS,
 	type ActivityLevel,
@@ -95,6 +96,7 @@ export function OnboardingForm() {
 
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
+	const weightId = useId();
 
 	function onReviewSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -223,19 +225,16 @@ export function OnboardingForm() {
 				</div>
 
 				<div>
-					<label htmlFor="weight" className={LABEL}>
+					<label htmlFor={weightId} className={LABEL}>
 						Current weight (lbs)
 					</label>
-					<input
-						id="weight"
-						type="number"
-						min={60}
-						max={700}
-						step={0.1}
-						required
+					<SteppableNumberInput
+						id={weightId}
 						value={weightLbs}
-						onChange={(e) => setWeightLbs(e.target.value)}
-						className={INPUT}
+						onChange={setWeightLbs}
+						min={60}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 

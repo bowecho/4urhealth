@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
+import { useId, useMemo, useState, useTransition } from "react";
 import {
 	CartesianGrid,
 	Line,
@@ -12,6 +12,7 @@ import {
 	deleteWeightAction,
 	saveWeightAction,
 } from "@/app/(app)/weight/actions";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 import { addDays } from "@/lib/date";
 
 export type WeightEntry = {
@@ -41,6 +42,8 @@ export function WeightView({
 	const [newWeight, setNewWeight] = useState(
 		todaysEntry?.weightLbs?.toString() ?? "",
 	);
+	const newWeightId = useId();
+	const editWeightId = useId();
 
 	const windowStart = addDays(today, -range);
 	const windowed = useMemo(
@@ -156,18 +159,19 @@ export function WeightView({
 						/>
 					</div>
 					<div>
-						<label htmlFor="w-val" className="block text-xs text-zinc-500 mb-1">
+						<label
+							htmlFor={newWeightId}
+							className="block text-xs text-zinc-500 mb-1"
+						>
 							Weight (lb)
 						</label>
-						<input
-							id="w-val"
-							type="number"
-							min={60}
-							max={700}
-							step={0.1}
+						<SteppableNumberInput
+							id={newWeightId}
 							value={newWeight}
-							onChange={(e) => setNewWeight(e.target.value)}
-							className="theme-input w-28 rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+							onChange={setNewWeight}
+							min={60}
+							inputClassName="theme-input w-full rounded-md border border-zinc-300 px-3 py-2 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+							wrapperClassName="w-28"
 						/>
 					</div>
 					<button
@@ -293,15 +297,14 @@ export function WeightView({
 								</span>
 								{editing === e.date ? (
 									<>
-										<input
-											type="number"
-											min={60}
-											max={700}
-											step={0.1}
+										<SteppableNumberInput
+											id={editWeightId}
+											ariaLabel="weight"
 											value={editWeight}
-											onChange={(ev) => setEditWeight(ev.target.value)}
-											className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-											aria-label="weight"
+											onChange={setEditWeight}
+											min={60}
+											inputClassName="w-full rounded-md border border-zinc-300 px-2 py-1 pr-10 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+											wrapperClassName="w-28"
 										/>
 										<button
 											type="button"

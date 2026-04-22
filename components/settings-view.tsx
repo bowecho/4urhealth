@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import {
 	type ImportSummary,
 	importDataAction,
 	saveProfileAction,
 } from "@/app/(app)/settings/actions";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 import { ACTIVITY_LABELS, calcAge, calcBmr, calcTdee } from "@/lib/tdee";
 
 type ActivityLevel =
@@ -72,6 +73,8 @@ export function SettingsView({ profile }: { profile: Profile }) {
 	const [saveMsg, setSaveMsg] = useState<string | null>(null);
 	const [saveErr, setSaveErr] = useState<string | null>(null);
 	const [saving, startSave] = useTransition();
+	const heightId = useId();
+	const weightGoalId = useId();
 
 	useEffect(() => {
 		const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -201,14 +204,12 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						/>
 					</Field>
 					<Field label="Height (in)">
-						<input
-							type="number"
-							min={36}
-							max={96}
-							step={0.5}
+						<SteppableNumberInput
+							id={heightId}
 							value={heightIn}
-							onChange={(e) => setHeightIn(e.target.value)}
-							className={inputCls}
+							onChange={setHeightIn}
+							min={36}
+							inputClassName={`${inputCls} pr-10`}
 						/>
 					</Field>
 					<Field label="Activity">
@@ -227,14 +228,12 @@ export function SettingsView({ profile }: { profile: Profile }) {
 						</select>
 					</Field>
 					<Field label="Goal (lbs/week)">
-						<input
-							type="number"
-							step={0.25}
-							min={-2}
-							max={2}
+						<SteppableNumberInput
+							id={weightGoalId}
 							value={weightGoal}
-							onChange={(e) => setWeightGoal(e.target.value)}
-							className={inputCls}
+							onChange={setWeightGoal}
+							min={-2}
+							inputClassName={`${inputCls} pr-10`}
 						/>
 					</Field>
 					<Field label="Timezone">
@@ -431,17 +430,16 @@ function Field({
 
 function RecalcButton({ onRecalc }: { onRecalc: (weightLbs: number) => void }) {
 	const [weight, setWeight] = useState("");
+	const weightId = useId();
 	return (
 		<div className="flex items-end gap-2">
 			<Field label="Current weight (lb)">
-				<input
-					type="number"
-					min={60}
-					max={700}
-					step={0.1}
+				<SteppableNumberInput
+					id={weightId}
 					value={weight}
-					onChange={(e) => setWeight(e.target.value)}
-					className={inputCls}
+					onChange={setWeight}
+					min={60}
+					inputClassName={`${inputCls} pr-10`}
 				/>
 			</Field>
 			<button

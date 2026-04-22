@@ -1,6 +1,7 @@
 "use client";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useId, useState } from "react";
 import type { FoodInput } from "@/app/(app)/foods/schema";
+import { SteppableNumberInput } from "@/components/steppable-number-input";
 
 export type FoodDialogInitial = {
 	name: string;
@@ -61,6 +62,11 @@ export function FoodDialog({
 	const [carbsG, setCarbsG] = useState((initial?.carbsG ?? 0).toString());
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+	const servingSizeId = useId();
+	const servingsId = useId();
+	const proteinId = useId();
+	const fatId = useId();
+	const carbsId = useId();
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -151,18 +157,16 @@ export function FoodDialog({
 
 			<div className="grid grid-cols-2 gap-3">
 				<div>
-					<label htmlFor="food-size" className={LABEL}>
+					<label htmlFor={servingSizeId} className={LABEL}>
 						Serving size
 					</label>
-					<input
-						id="food-size"
-						type="number"
-						min={0.01}
-						step={0.01}
-						required
+					<SteppableNumberInput
+						id={servingSizeId}
 						value={servingSize}
-						onChange={(e) => setServingSize(e.target.value)}
-						className={INPUT}
+						onChange={setServingSize}
+						min={0.01}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 				<div>
@@ -183,18 +187,16 @@ export function FoodDialog({
 
 			{servingsField ? (
 				<div>
-					<label htmlFor="food-servings" className={LABEL}>
+					<label htmlFor={servingsId} className={LABEL}>
 						{servingsField.label ?? "Servings"}
 					</label>
-					<input
-						id="food-servings"
-						type="number"
-						min={0.01}
-						step={0.1}
-						required
+					<SteppableNumberInput
+						id={servingsId}
 						value={servingsField.value}
-						onChange={(e) => servingsField.onChange(e.target.value)}
-						className={INPUT}
+						onChange={servingsField.onChange}
+						min={0.01}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 			) : null}
@@ -216,48 +218,42 @@ export function FoodDialog({
 
 			<div className="grid grid-cols-3 gap-3">
 				<div>
-					<label htmlFor="food-p" className={LABEL}>
+					<label htmlFor={proteinId} className={LABEL}>
 						Protein (g)
 					</label>
-					<input
-						id="food-p"
-						type="number"
-						min={0}
-						step={0.1}
-						required
+					<SteppableNumberInput
+						id={proteinId}
 						value={proteinG}
-						onChange={(e) => setProteinG(e.target.value)}
-						className={INPUT}
+						onChange={setProteinG}
+						min={0}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 				<div>
-					<label htmlFor="food-f" className={LABEL}>
+					<label htmlFor={fatId} className={LABEL}>
 						Fat (g)
 					</label>
-					<input
-						id="food-f"
-						type="number"
-						min={0}
-						step={0.1}
-						required
+					<SteppableNumberInput
+						id={fatId}
 						value={fatG}
-						onChange={(e) => setFatG(e.target.value)}
-						className={INPUT}
+						onChange={setFatG}
+						min={0}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 				<div>
-					<label htmlFor="food-c" className={LABEL}>
+					<label htmlFor={carbsId} className={LABEL}>
 						Carbs (g)
 					</label>
-					<input
-						id="food-c"
-						type="number"
-						min={0}
-						step={0.1}
-						required
+					<SteppableNumberInput
+						id={carbsId}
 						value={carbsG}
-						onChange={(e) => setCarbsG(e.target.value)}
-						className={INPUT}
+						onChange={setCarbsG}
+						min={0}
+						required
+						inputClassName={`${INPUT} pr-10`}
 					/>
 				</div>
 			</div>

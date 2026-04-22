@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, Tooltip } from "recharts";
 
 type Daily = {
 	date: string;
@@ -134,29 +134,26 @@ export function StatsView({
 				) : (
 					<div className="flex items-center gap-4">
 						<div className="w-40 h-40 shrink-0">
-							<ResponsiveContainer width="100%" height="100%">
-								<PieChart>
-									<Pie
-										data={macroData}
-										dataKey="value"
-										innerRadius={40}
-										outerRadius={70}
-										paddingAngle={2}
-										stroke="none"
-									>
-										{macroData.map((entry) => (
-											<Cell key={entry.name} fill={entry.color} />
-										))}
-									</Pie>
-									<Tooltip
-										formatter={(value) => {
-											const n =
-												typeof value === "number" ? value : Number(value);
-											return Number.isFinite(n) ? `${Math.round(n)} cal` : "—";
-										}}
-									/>
-								</PieChart>
-							</ResponsiveContainer>
+							<PieChart responsive style={{ width: "100%", height: "100%" }}>
+								<Pie
+									data={macroData}
+									dataKey="value"
+									innerRadius={40}
+									outerRadius={70}
+									paddingAngle={2}
+									stroke="none"
+								>
+									{macroData.map((entry) => (
+										<Cell key={entry.name} fill={entry.color} />
+									))}
+								</Pie>
+								<Tooltip
+									formatter={(value) => {
+										const n = typeof value === "number" ? value : Number(value);
+										return Number.isFinite(n) ? `${Math.round(n)} cal` : "—";
+									}}
+								/>
+							</PieChart>
 						</div>
 						<ul className="text-sm space-y-1 flex-1">
 							<MacroLegend

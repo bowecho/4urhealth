@@ -9,6 +9,11 @@ const PUBLIC_PATHS = isPlaywrightHarnessEnabled()
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 	const sessionCookie = getSessionCookie(request);
+
+	if (isPlaywrightHarnessEnabled() && pathname.startsWith("/api/e2e/")) {
+		return NextResponse.next();
+	}
+
 	const isPublic = PUBLIC_PATHS.some(
 		(p) => pathname === p || pathname.startsWith(`${p}/`),
 	);

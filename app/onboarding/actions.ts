@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { user, weightLog } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
-import { todayInTz } from "@/lib/date";
+import { isValidTimeZone, todayInTz } from "@/lib/date";
 
 const OnboardingSchema = z.object({
 	sex: z.enum(["male", "female"]),
@@ -25,7 +25,7 @@ const OnboardingSchema = z.object({
 	targetProteinG: z.number().int().min(0).max(500),
 	targetFatG: z.number().int().min(0).max(300),
 	targetCarbsG: z.number().int().min(0).max(800),
-	timezone: z.string().min(1),
+	timezone: z.string().trim().refine(isValidTimeZone, "Invalid timezone"),
 });
 
 export type OnboardingInput = z.infer<typeof OnboardingSchema>;

@@ -1,26 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { addOneTimeMealItemAction } from "@/app/(app)/day/actions";
+import {
+	addOneTimeMealItemAction,
+	updateMealItemServingsAction,
+} from "@/app/(app)/day/actions";
 
-const { revalidatePath, requireUserId, db, mealLog, mealLogItem } = vi.hoisted(
-	() => {
+const { revalidatePath, requireUserId, db, mealLog, mealLogItem, foodItem } =
+	vi.hoisted(() => {
 		const mealLogId = {
 			id: "meal-log-id",
 			userId: "user_id",
 			date: "date",
 			mealType: "meal_type",
 		};
-		const mealLogItemId = { mealLogId: "meal_log_id" };
+		const mealLogItemId = {
+			id: "meal-log-item-id",
+			mealLogId: "meal_log_id",
+			foodItemId: "food_item_id",
+			servings: "servings",
+			caloriesSnapshot: "calories_snapshot",
+			proteinGSnapshot: "protein_g_snapshot",
+			fatGSnapshot: "fat_g_snapshot",
+			carbsGSnapshot: "carbs_g_snapshot",
+		};
 		return {
 			revalidatePath: vi.fn(),
 			requireUserId: vi.fn(),
 			db: {
 				transaction: vi.fn(),
+				select: vi.fn(),
+				update: vi.fn(),
 			},
 			mealLog: mealLogId,
 			mealLogItem: mealLogItemId,
+			foodItem: {},
 		};
-	},
-);
+	});
 
 vi.mock("next/cache", () => ({
 	revalidatePath,
@@ -35,7 +49,7 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
-	foodItem: {},
+	foodItem,
 	mealLog,
 	mealLogItem,
 }));
@@ -90,6 +104,45 @@ describe("day actions", () => {
 			proteinGSnapshot: "30.0",
 			fatGSnapshot: "20.0",
 			carbsGSnapshot: "35.0",
+		});
+		expect(revalidatePath).toHaveBeenCalledWith("/");
+		expect(revalidatePath).toHaveBeenCalledWith("/day/2026-04-21");
+	});
+
+	it("rescales stored snapshots when servings change", async () => {
+		const limit = vi.fn().mockResolvedValue([
+			{
+				itemId: "item-1",
+				foodItemId: "food-1",
+				servings: "2",
+				caloriesSnapshot: 600,
+				proteinGSnapshot: "50.0",
+				fatGSnapshot: "20.0",
+				carbsGSnapshot: "70.0",
+				logUserId: "user-1",
+			},
+		]);
+		const where = vi.fn(() => ({ limit }));
+		const innerJoin = vi.fn(() => ({ where }));
+		const from = vi.fn(() => ({ innerJoin }));
+		db.select.mockReturnValue({ from });
+
+		const updateWhere = vi.fn().mockResolvedValue(undefined);
+		const set = vi.fn(() => ({ where: updateWhere }));
+		db.update.mockReturnValue({ set });
+
+		await updateMealItemServingsAction({
+			mealLogItemId: "123e4567-e89b-42d3-a456-426614174000",
+			servings: 1.5,
+			date: "2026-04-21",
+		});
+
+		expect(set).toHaveBeenCalledWith({
+			servings: "1.5",
+			caloriesSnapshot: 450,
+			proteinGSnapshot: "37.5",
+			fatGSnapshot: "15.0",
+			carbsGSnapshot: "52.5",
 		});
 		expect(revalidatePath).toHaveBeenCalledWith("/");
 		expect(revalidatePath).toHaveBeenCalledWith("/day/2026-04-21");

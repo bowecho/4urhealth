@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { addDays, formatFriendlyDate, isIsoDate, todayInTz } from "./date";
+import {
+	addDays,
+	formatFriendlyDate,
+	isIsoDate,
+	isValidTimeZone,
+	todayInTz,
+} from "./date";
 
 describe("isIsoDate", () => {
 	it("accepts YYYY-MM-DD", () => {
@@ -32,6 +38,22 @@ describe("todayInTz", () => {
 		const now = new Date("2026-04-19T00:30:00.000Z");
 		expect(todayInTz("America/Chicago", now)).toBe("2026-04-18");
 		expect(todayInTz("Asia/Tokyo", now)).toBe("2026-04-19");
+	});
+
+	it("falls back to UTC for invalid timezones", () => {
+		const now = new Date("2026-04-19T00:30:00.000Z");
+		expect(todayInTz("America/Definitely-Not-Real", now)).toBe("2026-04-19");
+	});
+});
+
+describe("isValidTimeZone", () => {
+	it("accepts real IANA zones", () => {
+		expect(isValidTimeZone("America/Chicago")).toBe(true);
+	});
+
+	it("rejects invalid zones", () => {
+		expect(isValidTimeZone("CST")).toBe(false);
+		expect(isValidTimeZone("America/Definitely-Not-Real")).toBe(false);
 	});
 });
 

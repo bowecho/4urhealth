@@ -68,8 +68,8 @@ export function WeightView({
 		});
 	}, [windowed, showMA]);
 
-	const latest = entries.at(-1);
-	const first = entries[0];
+	const latest = windowed.at(-1);
+	const first = windowed[0];
 	const delta =
 		latest && first && latest.date !== first.date
 			? latest.weightLbs - first.weightLbs

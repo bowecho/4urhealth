@@ -120,6 +120,11 @@ export async function updateMealItemServingsAction(
 		.select({
 			itemId: mealLogItem.id,
 			foodItemId: mealLogItem.foodItemId,
+			servings: mealLogItem.servings,
+			caloriesSnapshot: mealLogItem.caloriesSnapshot,
+			proteinGSnapshot: mealLogItem.proteinGSnapshot,
+			fatGSnapshot: mealLogItem.fatGSnapshot,
+			carbsGSnapshot: mealLogItem.carbsGSnapshot,
 			logUserId: mealLog.userId,
 		})
 		.from(mealLogItem)
@@ -128,29 +133,23 @@ export async function updateMealItemServingsAction(
 		.limit(1);
 	if (!row || row.logUserId !== userId) throw new Error("Not found");
 
-	if (!row.foodItemId) {
-		await db
-			.update(mealLogItem)
-			.set({ servings: parsed.servings.toString() })
-			.where(eq(mealLogItem.id, parsed.mealLogItemId));
-	} else {
-		const [food] = await db
-			.select()
-			.from(foodItem)
-			.where(eq(foodItem.id, row.foodItemId))
-			.limit(1);
-		if (!food) throw new Error("Source food missing");
-		await db
-			.update(mealLogItem)
-			.set({
-				servings: parsed.servings.toString(),
-				caloriesSnapshot: Math.round(food.calories * parsed.servings),
-				proteinGSnapshot: (Number(food.proteinG) * parsed.servings).toFixed(1),
-				fatGSnapshot: (Number(food.fatG) * parsed.servings).toFixed(1),
-				carbsGSnapshot: (Number(food.carbsG) * parsed.servings).toFixed(1),
-			})
-			.where(eq(mealLogItem.id, parsed.mealLogItemId));
+	const currentServings = Number(row.servings);
+	if (!Number.isFinite(currentServings) || currentServings <= 0) {
+		throw new Error("Stored meal item is invalid");
 	}
+
+	const ratio = parsed.servings / currentServings;
+
+	await db
+		.update(mealLogItem)
+		.set({
+			servings: parsed.servings.toString(),
+			caloriesSnapshot: Math.round(row.caloriesSnapshot * ratio),
+			proteinGSnapshot: (Number(row.proteinGSnapshot) * ratio).toFixed(1),
+			fatGSnapshot: (Number(row.fatGSnapshot) * ratio).toFixed(1),
+			carbsGSnapshot: (Number(row.carbsGSnapshot) * ratio).toFixed(1),
+		})
+		.where(eq(mealLogItem.id, parsed.mealLogItemId));
 
 	revalidatePath("/");
 	revalidatePath(`/day/${parsed.date}`);

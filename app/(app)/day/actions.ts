@@ -2,7 +2,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { FoodSchema } from "@/app/(app)/foods/actions";
+import { FoodSchema } from "@/app/(app)/foods/schema";
 import { db } from "@/db";
 import { foodItem, mealLog, mealLogItem } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";

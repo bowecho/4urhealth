@@ -4,10 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import {
 	archiveFoodAction,
 	createFoodAction,
-	type FoodInput,
 	unarchiveFoodAction,
 	updateFoodAction,
 } from "@/app/(app)/foods/actions";
+import type { FoodInput } from "@/app/(app)/foods/schema";
 import { FoodDialog } from "@/components/food-dialog";
 
 export type Food = {

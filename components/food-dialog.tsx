@@ -1,6 +1,6 @@
 "use client";
 import { type FormEvent, useEffect, useState } from "react";
-import type { FoodInput } from "@/app/(app)/foods/actions";
+import type { FoodInput } from "@/app/(app)/foods/schema";
 
 export type FoodDialogInitial = {
 	name: string;

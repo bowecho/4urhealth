@@ -4,7 +4,8 @@ import {
 	addMealItemAction,
 	addOneTimeMealItemAction,
 } from "@/app/(app)/day/actions";
-import { createFoodAction, type FoodInput } from "@/app/(app)/foods/actions";
+import { createFoodAction } from "@/app/(app)/foods/actions";
+import type { FoodInput } from "@/app/(app)/foods/schema";
 import type { FoodOption } from "@/components/day-view";
 import { FoodDialog } from "@/components/food-dialog";
 
@@ -133,7 +134,6 @@ export function AddMealItemDialog({
 					<FoodDialog
 						embedded
 						title="New food"
-						submitLabel="Save food"
 						initial={{
 							name: query.trim(),
 							brand: "",

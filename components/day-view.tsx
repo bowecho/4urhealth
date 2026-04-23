@@ -1,41 +1,18 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
-import { DayMealsSection } from "@/components/day-meals-section";
 import { DayTotals } from "@/components/day-totals";
+import { MealCard } from "@/components/meal-card";
 import { db } from "@/db";
 import { foodItem, mealLog, mealLogItem, user } from "@/db/schema";
+import { type FoodOption, MEAL_TYPES, type MealItem } from "@/lib/app-types";
 import { requireUserId } from "@/lib/auth-server";
 import { addDays, formatFriendlyDate } from "@/lib/date";
 
-const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"] as const;
 const MEAL_LABELS: Record<(typeof MEAL_TYPES)[number], string> = {
 	breakfast: "Breakfast",
 	lunch: "Lunch",
 	dinner: "Dinner",
 	snack: "Snacks",
-};
-
-export type MealItem = {
-	id: string;
-	foodItemId: string | null;
-	servings: number;
-	name: string;
-	calories: number;
-	proteinG: number;
-	fatG: number;
-	carbsG: number;
-};
-
-export type FoodOption = {
-	id: string;
-	name: string;
-	brand: string | null;
-	servingSize: number;
-	servingUnit: string;
-	calories: number;
-	proteinG: number;
-	fatG: number;
-	carbsG: number;
 };
 
 export async function DayView({
@@ -158,15 +135,16 @@ export async function DayView({
 				}}
 			/>
 
-			<DayMealsSection
-				date={date}
-				foods={foods}
-				meals={MEAL_TYPES.map((mealType) => ({
-					mealType,
-					label: MEAL_LABELS[mealType],
-					items: byType[mealType],
-				}))}
-			/>
+			{MEAL_TYPES.map((mealType) => (
+				<MealCard
+					key={mealType}
+					date={date}
+					mealType={mealType}
+					label={MEAL_LABELS[mealType]}
+					items={byType[mealType]}
+					foods={foods}
+				/>
+			))}
 		</main>
 	);
 }

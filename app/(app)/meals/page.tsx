@@ -1,15 +1,12 @@
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
-import { MealsView, type SavedMealDetail } from "@/components/meals-view";
+import { MealsView } from "@/components/meals-view";
 import { db } from "@/db";
 import { foodItem, savedMeal, savedMealItem } from "@/db/schema";
-import { requireSession } from "@/lib/auth-server";
-import { todayInTz } from "@/lib/date";
+import { requireAppPageContext } from "@/lib/app-page";
+import type { SavedMealDetail } from "@/lib/app-types";
 
 export default async function MealsPage() {
-	const session = await requireSession();
-	const userId = session.user.id;
-	const tz = session.user.timezone || "UTC";
-	const today = todayInTz(tz);
+	const { today, userId } = await requireAppPageContext();
 
 	const meals = await db
 		.select({ id: savedMeal.id, name: savedMeal.name })

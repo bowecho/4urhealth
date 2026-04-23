@@ -3,15 +3,15 @@ import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import {
-	foodItem,
-	mealLog,
-	mealLogItem,
-	savedMeal,
-	savedMealItem,
-} from "@/db/schema";
+import { foodItem, mealLogItem, savedMeal, savedMealItem } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
 import { isIsoDate } from "@/lib/date";
+import {
+	buildMealItemSnapshot,
+	ensureMealLogId,
+	MealTypeSchema,
+	revalidateDay,
+} from "@/lib/meal-log";
 
 const ItemSchema = z.object({
 	foodItemId: z.uuid(),
@@ -109,7 +109,7 @@ export async function archiveSavedMealAction(id: string) {
 const ApplySchema = z.object({
 	savedMealId: z.uuid(),
 	date: z.string().refine(isIsoDate, "Invalid date"),
-	mealType: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+	mealType: MealTypeSchema,
 });
 
 export async function applySavedMealAction(input: z.input<typeof ApplySchema>) {
@@ -145,33 +145,24 @@ export async function applySavedMealAction(input: z.input<typeof ApplySchema>) {
 	if (rows.length === 0) throw new Error("Saved meal has no items");
 
 	await db.transaction(async (tx) => {
-		const [log] = await tx
-			.insert(mealLog)
-			.values({ userId, date: parsed.date, mealType: parsed.mealType })
-			.onConflictDoUpdate({
-				target: [mealLog.userId, mealLog.date, mealLog.mealType],
-				set: { updatedAt: new Date() },
-			})
-			.returning({ id: mealLog.id });
+		const mealLogId = await ensureMealLogId(tx, {
+			userId,
+			date: parsed.date,
+			mealType: parsed.mealType,
+		});
 
 		await tx.insert(mealLogItem).values(
 			rows.map((r) => {
 				const servings = Number(r.servings);
 				return {
-					mealLogId: log.id,
+					mealLogId,
 					foodItemId: r.food.id,
-					servings: servings.toString(),
 					sortOrder: r.sortOrder,
-					nameSnapshot: r.food.name,
-					caloriesSnapshot: Math.round(r.food.calories * servings),
-					proteinGSnapshot: (Number(r.food.proteinG) * servings).toFixed(1),
-					fatGSnapshot: (Number(r.food.fatG) * servings).toFixed(1),
-					carbsGSnapshot: (Number(r.food.carbsG) * servings).toFixed(1),
+					...buildMealItemSnapshot(r.food, servings),
 				};
 			}),
 		);
 	});
 
-	revalidatePath("/");
-	revalidatePath(`/day/${parsed.date}`);
+	revalidateDay(parsed.date);
 }

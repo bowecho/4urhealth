@@ -1,16 +1,16 @@
 "use client";
-import { useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useId, useMemo, useState, useTransition } from "react";
 import {
 	addMealItemAction,
 	addOneTimeMealItemAction,
 } from "@/app/(app)/day/actions";
 import { createFoodAction } from "@/app/(app)/foods/actions";
 import type { FoodInput } from "@/app/(app)/foods/schema";
-import type { FoodOption } from "@/components/day-view";
 import { FoodDialog } from "@/components/food-dialog";
+import { ModalShell } from "@/components/modal-shell";
 import { SteppableNumberInput } from "@/components/steppable-number-input";
-
-type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+import type { FoodOption, MealType } from "@/lib/app-types";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 export function AddMealItemDialog({
 	date,
@@ -38,15 +38,7 @@ export function AddMealItemDialog({
 	const parsedServings = servings.trim() === "" ? Number.NaN : Number(servings);
 	const validServings =
 		Number.isFinite(parsedServings) && parsedServings >= 0.01;
-
-	useEffect(() => {
-		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === "Escape") onClose();
-		}
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [onClose]);
+	useEscapeKey(onClose);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -112,13 +104,7 @@ export function AddMealItemDialog({
 	}
 
 	return (
-		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
-			<button
-				type="button"
-				aria-label="Close dialog"
-				className="absolute inset-0 bg-black/40"
-				onClick={onClose}
-			/>
+		<ModalShell onClose={onClose}>
 			<div className="theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold">Add to {mealLabel}</h2>
@@ -295,6 +281,6 @@ export function AddMealItemDialog({
 					</>
 				)}
 			</div>
-		</div>
+		</ModalShell>
 	);
 }

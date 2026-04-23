@@ -1,18 +1,21 @@
 "use server";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { FoodSchema } from "@/app/(app)/foods/schema";
 import { db } from "@/db";
 import { foodItem, mealLog, mealLogItem } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
 import { isIsoDate } from "@/lib/date";
-
-const MealTypeEnum = z.enum(["breakfast", "lunch", "dinner", "snack"]);
+import {
+	buildMealItemSnapshot,
+	ensureMealLogId,
+	MealTypeSchema,
+	revalidateDay,
+} from "@/lib/meal-log";
 
 const AddMealItemSchema = z.object({
 	date: z.string().refine(isIsoDate, "Invalid date"),
-	mealType: MealTypeEnum,
+	mealType: MealTypeSchema,
 	foodItemId: z.uuid(),
 	servings: z.number().min(0.01).max(100),
 });
@@ -30,40 +33,26 @@ export async function addMealItemAction(
 		.limit(1);
 	if (!food) throw new Error("Food not found");
 
-	const caloriesSnapshot = Math.round(food.calories * parsed.servings);
-	const proteinGSnapshot = (Number(food.proteinG) * parsed.servings).toFixed(1);
-	const fatGSnapshot = (Number(food.fatG) * parsed.servings).toFixed(1);
-	const carbsGSnapshot = (Number(food.carbsG) * parsed.servings).toFixed(1);
-
 	await db.transaction(async (tx) => {
-		const [log] = await tx
-			.insert(mealLog)
-			.values({ userId, date: parsed.date, mealType: parsed.mealType })
-			.onConflictDoUpdate({
-				target: [mealLog.userId, mealLog.date, mealLog.mealType],
-				set: { updatedAt: new Date() },
-			})
-			.returning({ id: mealLog.id });
+		const mealLogId = await ensureMealLogId(tx, {
+			userId,
+			date: parsed.date,
+			mealType: parsed.mealType,
+		});
 
 		await tx.insert(mealLogItem).values({
-			mealLogId: log.id,
+			mealLogId,
 			foodItemId: food.id,
-			servings: parsed.servings.toString(),
-			nameSnapshot: food.name,
-			caloriesSnapshot,
-			proteinGSnapshot,
-			fatGSnapshot,
-			carbsGSnapshot,
+			...buildMealItemSnapshot(food, parsed.servings),
 		});
 	});
 
-	revalidatePath("/");
-	revalidatePath(`/day/${parsed.date}`);
+	revalidateDay(parsed.date);
 }
 
 const AddOneTimeMealItemSchema = FoodSchema.extend({
 	date: z.string().refine(isIsoDate, "Invalid date"),
-	mealType: MealTypeEnum,
+	mealType: MealTypeSchema,
 	servings: z.number().min(0.01).max(100),
 });
 
@@ -73,35 +62,21 @@ export async function addOneTimeMealItemAction(
 	const userId = await requireUserId();
 	const parsed = AddOneTimeMealItemSchema.parse(input);
 
-	const caloriesSnapshot = Math.round(parsed.calories * parsed.servings);
-	const proteinGSnapshot = (parsed.proteinG * parsed.servings).toFixed(1);
-	const fatGSnapshot = (parsed.fatG * parsed.servings).toFixed(1);
-	const carbsGSnapshot = (parsed.carbsG * parsed.servings).toFixed(1);
-
 	await db.transaction(async (tx) => {
-		const [log] = await tx
-			.insert(mealLog)
-			.values({ userId, date: parsed.date, mealType: parsed.mealType })
-			.onConflictDoUpdate({
-				target: [mealLog.userId, mealLog.date, mealLog.mealType],
-				set: { updatedAt: new Date() },
-			})
-			.returning({ id: mealLog.id });
+		const mealLogId = await ensureMealLogId(tx, {
+			userId,
+			date: parsed.date,
+			mealType: parsed.mealType,
+		});
 
 		await tx.insert(mealLogItem).values({
-			mealLogId: log.id,
+			mealLogId,
 			foodItemId: null,
-			servings: parsed.servings.toString(),
-			nameSnapshot: parsed.name,
-			caloriesSnapshot,
-			proteinGSnapshot,
-			fatGSnapshot,
-			carbsGSnapshot,
+			...buildMealItemSnapshot(parsed, parsed.servings),
 		});
 	});
 
-	revalidatePath("/");
-	revalidatePath(`/day/${parsed.date}`);
+	revalidateDay(parsed.date);
 }
 
 const UpdateServingsSchema = z.object({
@@ -151,8 +126,7 @@ export async function updateMealItemServingsAction(
 		})
 		.where(eq(mealLogItem.id, parsed.mealLogItemId));
 
-	revalidatePath("/");
-	revalidatePath(`/day/${parsed.date}`);
+	revalidateDay(parsed.date);
 }
 
 const DeleteSchema = z.object({
@@ -176,6 +150,5 @@ export async function deleteMealItemAction(
 
 	await db.delete(mealLogItem).where(eq(mealLogItem.id, parsed.mealLogItemId));
 
-	revalidatePath("/");
-	revalidatePath(`/day/${parsed.date}`);
+	revalidateDay(parsed.date);
 }

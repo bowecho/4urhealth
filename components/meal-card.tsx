@@ -5,10 +5,8 @@ import {
 	updateMealItemServingsAction,
 } from "@/app/(app)/day/actions";
 import { AddMealItemDialog } from "@/components/add-meal-item-dialog";
-import type { FoodOption, MealItem } from "@/components/day-view";
 import { SteppableNumberInput } from "@/components/steppable-number-input";
-
-type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+import type { FoodOption, MealItem, MealType } from "@/lib/app-types";
 
 export function MealCard({
 	date,

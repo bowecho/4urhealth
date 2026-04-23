@@ -15,6 +15,7 @@ import {
 } from "@/db/schema";
 import { requireUserId } from "@/lib/auth-server";
 import { isIsoDate, isValidTimeZone } from "@/lib/date";
+import { MealTypeSchema } from "@/lib/meal-log";
 import { THEME_COOKIE_NAME, type ThemePreference } from "@/lib/theme";
 
 const ProfileSchema = z.object({
@@ -110,7 +111,7 @@ const SavedMealImport = z.object({
 
 const MealLogImport = z.object({
 	date: z.string().refine(isIsoDate),
-	mealType: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+	mealType: MealTypeSchema,
 	items: z
 		.array(
 			z.object({
@@ -140,17 +141,222 @@ export type ImportSummary = {
 	mealLogs: number;
 };
 
-export async function importDataAction(
-	rawJson: string,
-): Promise<ImportSummary> {
-	const userId = await requireUserId();
+type FoodLookupInput = {
+	name?: string;
+	brand?: string | null;
+	foodName?: string;
+	foodBrand?: string | null;
+};
+
+type FoodLookupMaps = {
+	importedFoodIdMap: Map<string, string>;
+	existingFoodMap: Map<string, string>;
+};
+
+type FoodReference = {
+	foodId?: string | null;
+	foodName: string;
+	foodBrand?: string | null;
+};
+
+function parseImportData(rawJson: string) {
 	let parsedInput: unknown;
 	try {
 		parsedInput = JSON.parse(rawJson);
 	} catch {
 		throw new Error("Invalid JSON");
 	}
-	const data = ImportSchema.parse(parsedInput);
+	return ImportSchema.parse(parsedInput);
+}
+
+function foodLookupKey(food: FoodLookupInput) {
+	const name = food.name ?? food.foodName ?? "";
+	const brand = food.brand ?? food.foodBrand ?? "";
+	return `${name.toLowerCase()}::${brand.toLowerCase()}`;
+}
+
+function resolveFoodId(
+	item: FoodReference,
+	{ importedFoodIdMap, existingFoodMap }: FoodLookupMaps,
+) {
+	if (item.foodId) {
+		const importedId = importedFoodIdMap.get(item.foodId);
+		if (importedId) return importedId;
+	}
+	return existingFoodMap.get(foodLookupKey(item)) ?? null;
+}
+
+async function importFoods(
+	userId: string,
+	foods: z.infer<typeof FoodImport>[] | undefined,
+	{ importedFoodIdMap, existingFoodMap }: FoodLookupMaps,
+) {
+	if (!foods?.length) return 0;
+
+	const insertedFoods = await db
+		.insert(foodItem)
+		.values(
+			foods.map((f) => ({
+				userId,
+				name: f.name,
+				brand: f.brand ?? null,
+				servingSize: f.servingSize.toString(),
+				servingUnit: f.servingUnit,
+				calories: f.calories,
+				proteinG: f.proteinG.toString(),
+				fatG: f.fatG.toString(),
+				carbsG: f.carbsG.toString(),
+			})),
+		)
+		.returning({
+			id: foodItem.id,
+			name: foodItem.name,
+			brand: foodItem.brand,
+		});
+
+	for (const [index, inserted] of insertedFoods.entries()) {
+		const source = foods[index];
+		if (source?.id) importedFoodIdMap.set(source.id, inserted.id);
+		existingFoodMap.set(foodLookupKey(inserted), inserted.id);
+	}
+
+	return foods.length;
+}
+
+async function loadExistingFoodMap(
+	userId: string,
+	existingFoodMap: Map<string, string>,
+) {
+	const myFoods = await db
+		.select({ id: foodItem.id, name: foodItem.name, brand: foodItem.brand })
+		.from(foodItem)
+		.where(eq(foodItem.userId, userId));
+
+	for (const food of myFoods) {
+		existingFoodMap.set(foodLookupKey(food), food.id);
+	}
+}
+
+async function importWeights(
+	userId: string,
+	weights: z.infer<typeof WeightImport>[] | undefined,
+) {
+	if (!weights?.length) return 0;
+
+	for (const weight of weights) {
+		await db
+			.insert(weightLog)
+			.values({
+				userId,
+				date: weight.date,
+				weightLbs: weight.weightLbs.toString(),
+				note: weight.note ?? null,
+			})
+			.onConflictDoUpdate({
+				target: [weightLog.userId, weightLog.date],
+				set: {
+					weightLbs: weight.weightLbs.toString(),
+					note: weight.note ?? null,
+					updatedAt: new Date(),
+				},
+			});
+	}
+
+	return weights.length;
+}
+
+async function importSavedMeals(
+	userId: string,
+	savedMeals: z.infer<typeof SavedMealImport>[] | undefined,
+	resolveImportedFoodId: (item: FoodReference) => string | null,
+) {
+	if (!savedMeals?.length) return 0;
+
+	let importedCount = 0;
+	for (const savedMealData of savedMeals) {
+		const resolvedItems = savedMealData.items.flatMap((item) => {
+			const foodItemId = resolveImportedFoodId(item);
+			return foodItemId ? [{ foodItemId, servings: item.servings }] : [];
+		});
+		if (resolvedItems.length === 0) continue;
+
+		await db.transaction(async (tx) => {
+			const [savedMealRow] = await tx
+				.insert(savedMeal)
+				.values({ userId, name: savedMealData.name })
+				.returning({ id: savedMeal.id });
+			await tx.insert(savedMealItem).values(
+				resolvedItems.map((item, idx) => ({
+					savedMealId: savedMealRow.id,
+					foodItemId: item.foodItemId,
+					servings: item.servings.toString(),
+					sortOrder: idx,
+				})),
+			);
+		});
+
+		importedCount++;
+	}
+
+	return importedCount;
+}
+
+async function importMealLogs(
+	userId: string,
+	mealLogsToImport: z.infer<typeof MealLogImport>[] | undefined,
+	resolveImportedFoodId: (item: FoodReference) => string | null,
+) {
+	if (!mealLogsToImport?.length) return 0;
+
+	for (const mealLogData of mealLogsToImport) {
+		await db.transaction(async (tx) => {
+			const [mealLogRow] = await tx
+				.insert(mealLog)
+				.values({
+					userId,
+					date: mealLogData.date,
+					mealType: mealLogData.mealType,
+				})
+				.onConflictDoUpdate({
+					target: [mealLog.userId, mealLog.date, mealLog.mealType],
+					set: { updatedAt: new Date() },
+				})
+				.returning({ id: mealLog.id });
+			await tx
+				.delete(mealLogItem)
+				.where(eq(mealLogItem.mealLogId, mealLogRow.id));
+			await tx.insert(mealLogItem).values(
+				mealLogData.items.map((item, idx) => ({
+					mealLogId: mealLogRow.id,
+					foodItemId: resolveImportedFoodId(item),
+					servings: item.servings.toString(),
+					sortOrder: idx,
+					nameSnapshot: item.foodName,
+					caloriesSnapshot: item.calories,
+					proteinGSnapshot: item.proteinG.toString(),
+					fatGSnapshot: item.fatG.toString(),
+					carbsGSnapshot: item.carbsG.toString(),
+				})),
+			);
+		});
+	}
+
+	return mealLogsToImport.length;
+}
+
+function revalidateImportedData() {
+	revalidatePath("/");
+	revalidatePath("/foods");
+	revalidatePath("/meals");
+	revalidatePath("/weight");
+	revalidatePath("/stats");
+}
+
+export async function importDataAction(
+	rawJson: string,
+): Promise<ImportSummary> {
+	const userId = await requireUserId();
+	const data = parseImportData(rawJson);
 	const summary: ImportSummary = {
 		foods: 0,
 		weights: 0,
@@ -159,148 +365,24 @@ export async function importDataAction(
 	};
 	const importedFoodIdMap = new Map<string, string>();
 	const existingFoodMap = new Map<string, string>();
+	const foodLookupMaps = { importedFoodIdMap, existingFoodMap };
+	const resolveImportedFoodId = (item: FoodReference) =>
+		resolveFoodId(item, foodLookupMaps);
 
-	function foodLookupKey(food: {
-		name?: string;
-		brand?: string | null;
-		foodName?: string;
-		foodBrand?: string | null;
-	}) {
-		const name = food.name ?? food.foodName ?? "";
-		const brand = food.brand ?? food.foodBrand ?? "";
-		return `${name.toLowerCase()}::${brand.toLowerCase()}`;
-	}
+	summary.foods = await importFoods(userId, data.foods, foodLookupMaps);
+	await loadExistingFoodMap(userId, existingFoodMap);
+	summary.weights = await importWeights(userId, data.weights);
+	summary.savedMeals = await importSavedMeals(
+		userId,
+		data.savedMeals,
+		resolveImportedFoodId,
+	);
+	summary.mealLogs = await importMealLogs(
+		userId,
+		data.mealLogs,
+		resolveImportedFoodId,
+	);
 
-	function resolveFoodId(item: {
-		foodId?: string | null;
-		foodName: string;
-		foodBrand?: string | null;
-	}) {
-		if (item.foodId) {
-			const importedId = importedFoodIdMap.get(item.foodId);
-			if (importedId) return importedId;
-		}
-		return existingFoodMap.get(foodLookupKey(item)) ?? null;
-	}
-
-	if (data.foods?.length) {
-		const insertedFoods = await db
-			.insert(foodItem)
-			.values(
-				data.foods.map((f) => ({
-					userId,
-					name: f.name,
-					brand: f.brand ?? null,
-					servingSize: f.servingSize.toString(),
-					servingUnit: f.servingUnit,
-					calories: f.calories,
-					proteinG: f.proteinG.toString(),
-					fatG: f.fatG.toString(),
-					carbsG: f.carbsG.toString(),
-				})),
-			)
-			.returning({
-				id: foodItem.id,
-				name: foodItem.name,
-				brand: foodItem.brand,
-			});
-		for (const [index, inserted] of insertedFoods.entries()) {
-			const source = data.foods[index];
-			if (source?.id) importedFoodIdMap.set(source.id, inserted.id);
-			existingFoodMap.set(foodLookupKey(inserted), inserted.id);
-		}
-		summary.foods = data.foods.length;
-	}
-
-	const myFoods = await db
-		.select({ id: foodItem.id, name: foodItem.name, brand: foodItem.brand })
-		.from(foodItem)
-		.where(eq(foodItem.userId, userId));
-	for (const food of myFoods) {
-		existingFoodMap.set(foodLookupKey(food), food.id);
-	}
-
-	if (data.weights?.length) {
-		for (const w of data.weights) {
-			await db
-				.insert(weightLog)
-				.values({
-					userId,
-					date: w.date,
-					weightLbs: w.weightLbs.toString(),
-					note: w.note ?? null,
-				})
-				.onConflictDoUpdate({
-					target: [weightLog.userId, weightLog.date],
-					set: {
-						weightLbs: w.weightLbs.toString(),
-						note: w.note ?? null,
-						updatedAt: new Date(),
-					},
-				});
-		}
-		summary.weights = data.weights.length;
-	}
-
-	if (data.savedMeals?.length) {
-		for (const m of data.savedMeals) {
-			const resolved = m.items.flatMap((it) => {
-				const id = resolveFoodId(it);
-				return id ? [{ foodItemId: id, servings: it.servings }] : [];
-			});
-			if (resolved.length === 0) continue;
-			await db.transaction(async (tx) => {
-				const [sm] = await tx
-					.insert(savedMeal)
-					.values({ userId, name: m.name })
-					.returning({ id: savedMeal.id });
-				await tx.insert(savedMealItem).values(
-					resolved.map((it, idx) => ({
-						savedMealId: sm.id,
-						foodItemId: it.foodItemId,
-						servings: it.servings.toString(),
-						sortOrder: idx,
-					})),
-				);
-			});
-			summary.savedMeals++;
-		}
-	}
-
-	if (data.mealLogs?.length) {
-		for (const log of data.mealLogs) {
-			await db.transaction(async (tx) => {
-				const [row] = await tx
-					.insert(mealLog)
-					.values({ userId, date: log.date, mealType: log.mealType })
-					.onConflictDoUpdate({
-						target: [mealLog.userId, mealLog.date, mealLog.mealType],
-						set: { updatedAt: new Date() },
-					})
-					.returning({ id: mealLog.id });
-				await tx.delete(mealLogItem).where(eq(mealLogItem.mealLogId, row.id));
-				await tx.insert(mealLogItem).values(
-					log.items.map((it, idx) => ({
-						mealLogId: row.id,
-						foodItemId: resolveFoodId(it),
-						servings: it.servings.toString(),
-						sortOrder: idx,
-						nameSnapshot: it.foodName,
-						caloriesSnapshot: it.calories,
-						proteinGSnapshot: it.proteinG.toString(),
-						fatGSnapshot: it.fatG.toString(),
-						carbsGSnapshot: it.carbsG.toString(),
-					})),
-				);
-			});
-			summary.mealLogs++;
-		}
-	}
-
-	revalidatePath("/");
-	revalidatePath("/foods");
-	revalidatePath("/meals");
-	revalidatePath("/weight");
-	revalidatePath("/stats");
+	revalidateImportedData();
 	return summary;
 }

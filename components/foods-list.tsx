@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import {
 	archiveFoodAction,
 	createFoodAction,
@@ -34,7 +34,6 @@ export function FoodsList({
 }) {
 	const [query, setQuery] = useState("");
 	const [dialog, setDialog] = useState<DialogState>(null);
-	const [_pending, startTransition] = useTransition();
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -46,26 +45,15 @@ export function FoodsList({
 		);
 	}, [items, query]);
 
-	function handleSubmit(input: FoodInput, id?: string) {
-		return new Promise<void>((resolve, reject) => {
-			startTransition(async () => {
-				try {
-					if (id) await updateFoodAction(id, input);
-					else await createFoodAction(input);
-					setDialog(null);
-					resolve();
-				} catch (err) {
-					reject(err);
-				}
-			});
-		});
+	async function handleSubmit(input: FoodInput, id?: string) {
+		if (id) await updateFoodAction(id, input);
+		else await createFoodAction(input);
+		setDialog(null);
 	}
 
-	function handleArchive(food: Food) {
-		startTransition(async () => {
-			if (food.archivedAt) await unarchiveFoodAction(food.id);
-			else await archiveFoodAction(food.id);
-		});
+	async function handleArchive(food: Food) {
+		if (food.archivedAt) await unarchiveFoodAction(food.id);
+		else await archiveFoodAction(food.id);
 	}
 
 	return (
@@ -152,7 +140,7 @@ export function FoodsList({
 								)}
 								<button
 									type="button"
-									onClick={() => handleArchive(f)}
+									onClick={() => void handleArchive(f)}
 									className="theme-secondary-button text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
 								>
 									{f.archivedAt ? "Restore" : "Archive"}

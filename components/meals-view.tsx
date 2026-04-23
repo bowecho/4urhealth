@@ -4,25 +4,9 @@ import {
 	applySavedMealAction,
 	archiveSavedMealAction,
 } from "@/app/(app)/meals/actions";
-import type { FoodOption } from "@/components/day-view";
+import { ModalShell } from "@/components/modal-shell";
 import { SavedMealBuilder } from "@/components/saved-meal-builder";
-
-export type SavedMealItem = {
-	foodId: string;
-	foodName: string;
-	servings: number;
-	calories: number;
-	proteinG: number;
-	fatG: number;
-	carbsG: number;
-};
-
-export type SavedMealDetail = {
-	id: string;
-	name: string;
-	items: SavedMealItem[];
-	totals: { calories: number; proteinG: number; fatG: number; carbsG: number };
-};
+import type { FoodOption, MealType, SavedMealDetail } from "@/lib/app-types";
 
 type BuilderState =
 	| { mode: "create" }
@@ -164,9 +148,7 @@ function ApplyDialog({
 	onClose: () => void;
 }) {
 	const [date, setDate] = useState(today);
-	const [mealType, setMealType] = useState<
-		"breakfast" | "lunch" | "dinner" | "snack"
-	>("lunch");
+	const [mealType, setMealType] = useState<MealType>("lunch");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
 
@@ -183,7 +165,7 @@ function ApplyDialog({
 	}
 
 	return (
-		<div className="fixed inset-0 z-10 bg-black/40 flex items-center justify-center p-4">
+		<ModalShell onClose={onClose}>
 			<div className="w-full max-w-sm rounded-lg bg-white dark:bg-zinc-950 p-5 space-y-4">
 				<h2 className="text-lg font-semibold">Log "{meal.name}"</h2>
 				<div>
@@ -211,11 +193,7 @@ function ApplyDialog({
 					<select
 						id="apply-meal"
 						value={mealType}
-						onChange={(e) =>
-							setMealType(
-								e.target.value as "breakfast" | "lunch" | "dinner" | "snack",
-							)
-						}
+						onChange={(e) => setMealType(e.target.value as MealType)}
 						className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
 					>
 						<option value="breakfast">Breakfast</option>
@@ -243,6 +221,6 @@ function ApplyDialog({
 					</button>
 				</div>
 			</div>
-		</div>
+		</ModalShell>
 	);
 }

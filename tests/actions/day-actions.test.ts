@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	addMealItemAction,
 	addOneTimeMealItemAction,
+	deleteMealItemAction,
 	updateMealItemServingsAction,
 } from "@/app/(app)/day/actions";
 
@@ -29,6 +31,7 @@ const { revalidatePath, requireUserId, db, mealLog, mealLogItem, foodItem } =
 				transaction: vi.fn(),
 				select: vi.fn(),
 				update: vi.fn(),
+				delete: vi.fn(),
 			},
 			mealLog: mealLogId,
 			mealLogItem: mealLogItemId,
@@ -109,6 +112,59 @@ describe("day actions", () => {
 		expect(revalidatePath).toHaveBeenCalledWith("/day/2026-04-21");
 	});
 
+	it("creates a logged food item from a saved food snapshot", async () => {
+		const foodLimit = vi.fn().mockResolvedValue([
+			{
+				id: "food-1",
+				name: "Greek Yogurt",
+				brand: "Fage",
+				servingSize: "1",
+				servingUnit: "cup",
+				calories: 130,
+				proteinG: "23",
+				fatG: "0",
+				carbsG: "9",
+			},
+		]);
+		const foodWhere = vi.fn(() => ({ limit: foodLimit }));
+		db.select.mockReturnValue({
+			from: vi.fn(() => ({ where: foodWhere })),
+		});
+
+		const mealReturning = vi.fn().mockResolvedValue([{ id: "log-1" }]);
+		const mealOnConflictDoUpdate = vi.fn(() => ({ returning: mealReturning }));
+		const mealValues = vi.fn(() => ({
+			onConflictDoUpdate: mealOnConflictDoUpdate,
+		}));
+		const itemValues = vi.fn().mockResolvedValue(undefined);
+		const tx = {
+			insert: vi.fn((table) => {
+				if (table === mealLog) return { values: mealValues };
+				if (table === mealLogItem) return { values: itemValues };
+				throw new Error("Unexpected table");
+			}),
+		};
+		db.transaction.mockImplementation(async (callback) => callback(tx));
+
+		await addMealItemAction({
+			date: "2026-04-21",
+			mealType: "breakfast",
+			foodItemId: "123e4567-e89b-42d3-a456-426614174000",
+			servings: 2,
+		});
+
+		expect(itemValues).toHaveBeenCalledWith({
+			mealLogId: "log-1",
+			foodItemId: "food-1",
+			servings: "2",
+			nameSnapshot: "Greek Yogurt",
+			caloriesSnapshot: 260,
+			proteinGSnapshot: "46.0",
+			fatGSnapshot: "0.0",
+			carbsGSnapshot: "18.0",
+		});
+	});
+
 	it("rescales stored snapshots when servings change", async () => {
 		const limit = vi.fn().mockResolvedValue([
 			{
@@ -144,6 +200,75 @@ describe("day actions", () => {
 			fatGSnapshot: "15.0",
 			carbsGSnapshot: "52.5",
 		});
+		expect(revalidatePath).toHaveBeenCalledWith("/");
+		expect(revalidatePath).toHaveBeenCalledWith("/day/2026-04-21");
+	});
+
+	it("rejects serving updates for missing or invalid rows", async () => {
+		const invalidLimit = vi.fn().mockResolvedValue([
+			{
+				itemId: "item-1",
+				foodItemId: "food-1",
+				servings: "0",
+				caloriesSnapshot: 600,
+				proteinGSnapshot: "50.0",
+				fatGSnapshot: "20.0",
+				carbsGSnapshot: "70.0",
+				logUserId: "user-1",
+			},
+		]);
+		db.select.mockReturnValueOnce({
+			from: vi.fn(() => ({
+				innerJoin: vi.fn(() => ({
+					where: vi.fn(() => ({ limit: invalidLimit })),
+				})),
+			})),
+		});
+
+		await expect(
+			updateMealItemServingsAction({
+				mealLogItemId: "123e4567-e89b-42d3-a456-426614174000",
+				servings: 1.5,
+				date: "2026-04-21",
+			}),
+		).rejects.toThrow("Stored meal item is invalid");
+
+		const missingLimit = vi.fn().mockResolvedValue([]);
+		db.select.mockReturnValueOnce({
+			from: vi.fn(() => ({
+				innerJoin: vi.fn(() => ({
+					where: vi.fn(() => ({ limit: missingLimit })),
+				})),
+			})),
+		});
+
+		await expect(
+			updateMealItemServingsAction({
+				mealLogItemId: "123e4567-e89b-42d3-a456-426614174000",
+				servings: 1.5,
+				date: "2026-04-21",
+			}),
+		).rejects.toThrow("Not found");
+	});
+
+	it("deletes meal items owned by the current user", async () => {
+		const limit = vi.fn().mockResolvedValue([{ logUserId: "user-1" }]);
+		db.select.mockReturnValue({
+			from: vi.fn(() => ({
+				innerJoin: vi.fn(() => ({
+					where: vi.fn(() => ({ limit })),
+				})),
+			})),
+		});
+		const deleteWhere = vi.fn().mockResolvedValue(undefined);
+		db.delete = vi.fn(() => ({ where: deleteWhere }));
+
+		await deleteMealItemAction({
+			mealLogItemId: "123e4567-e89b-42d3-a456-426614174000",
+			date: "2026-04-21",
+		});
+
+		expect(deleteWhere).toHaveBeenCalledTimes(1);
 		expect(revalidatePath).toHaveBeenCalledWith("/");
 		expect(revalidatePath).toHaveBeenCalledWith("/day/2026-04-21");
 	});

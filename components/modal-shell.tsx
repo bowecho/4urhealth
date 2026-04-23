@@ -16,7 +16,7 @@ export function ModalShell({
 				className="absolute inset-0 bg-black/40"
 				onClick={onClose}
 			/>
-			{children}
+			<div className="relative z-10">{children}</div>
 		</div>
 	);
 }

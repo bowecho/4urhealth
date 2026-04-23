@@ -31,6 +31,16 @@ This repo uses a modern Next.js release with breaking changes from older version
 - `lib/app-types.ts` for shared meal/food view types
 - The repo currently uses standard-library date helpers in `lib/date.ts`; `date-fns` and `react-hook-form` are not part of the active app surface
 
+## Architecture Direction
+
+- The current app structure is intentionally simple and still acceptable at this size: thin route files in `app/`, reusable UI in `components/`, and cross-cutting helpers in `lib/`.
+- Do not do broad app-wide folder churn just to make the repo look more "enterprise". Large structural moves across `app/`, `components/`, and `lib/` are high-churn and easy to get wrong in Next.js.
+- When the app grows, prefer incremental feature-oriented extraction rather than full rewrites. Good first candidates are `day`, `meals`, and `settings`.
+- For new nontrivial domain logic, prefer feature seams such as `features/<domain>/queries.ts`, `features/<domain>/mutations.ts`, or `features/<domain>/components/` instead of spreading new logic across unrelated top-level folders.
+- Keep `app/` route files thin. They should mostly handle routing, page composition, and server-action transport concerns; push durable business logic into feature helpers or shared modules.
+- Keep `lib/` for genuinely cross-cutting utilities. If a helper becomes domain-specific, prefer moving it toward the owning feature rather than turning `lib/` into a misc bucket.
+- Prefer small, domain-by-domain migrations with full verification over large one-shot architecture refactors.
+
 ## Project Rules
 
 1. Use `proxy.ts` rather than `middleware.ts`.

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { savedMeal, savedMealItem, user } from "@/db/schema";
 import { isPlaywrightHarnessEnabled } from "@/lib/runtime-flags";
 
 type CleanupRequest = {
@@ -21,6 +21,31 @@ export async function DELETE(request: Request) {
 		return NextResponse.json({ error: "Invalid email" }, { status: 400 });
 	}
 
-	await db.delete(user).where(eq(user.email, email));
+	const [match] = await db
+		.select({ id: user.id })
+		.from(user)
+		.where(eq(user.email, email))
+		.limit(1);
+	if (!match) {
+		return NextResponse.json({ ok: true });
+	}
+
+	await db.transaction(async (tx) => {
+		const meals = await tx
+			.select({ id: savedMeal.id })
+			.from(savedMeal)
+			.where(eq(savedMeal.userId, match.id));
+		if (meals.length > 0) {
+			await tx.delete(savedMealItem).where(
+				inArray(
+					savedMealItem.savedMealId,
+					meals.map((meal) => meal.id),
+				),
+			);
+		}
+
+		await tx.delete(user).where(eq(user.id, match.id));
+	});
+
 	return NextResponse.json({ ok: true });
 }

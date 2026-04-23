@@ -187,4 +187,95 @@ describe("settings actions", () => {
 		expect(revalidatePath).toHaveBeenCalledWith("/");
 		expect(revalidatePath).toHaveBeenCalledWith("/stats");
 	});
+
+	it("rejects invalid JSON imports", async () => {
+		await expect(importDataAction("not-json")).rejects.toThrow("Invalid JSON");
+	});
+
+	it("imports weights and saved meals using existing foods, skipping unresolved items", async () => {
+		db.select.mockReturnValueOnce(
+			makeSelectWhereChain([
+				{
+					id: "food-db-1",
+					name: "Chicken Fajita Bowl",
+					brand: "Torchys",
+				},
+			]),
+		);
+
+		const weightOnConflictDoUpdate = vi.fn().mockResolvedValue(undefined);
+		const insertWeightValues = vi.fn(() => ({
+			onConflictDoUpdate: weightOnConflictDoUpdate,
+		}));
+		db.insert.mockReturnValueOnce({
+			values: insertWeightValues,
+		});
+
+		const savedMealValues = vi.fn(() => ({
+			returning: vi.fn().mockResolvedValue([{ id: "saved-meal-1" }]),
+		}));
+		const savedMealItemsValues = vi.fn().mockResolvedValue(undefined);
+		const tx = {
+			insert: vi
+				.fn()
+				.mockReturnValueOnce({ values: savedMealValues })
+				.mockReturnValueOnce({ values: savedMealItemsValues }),
+		};
+		db.transaction.mockImplementation(async (callback) => callback(tx));
+
+		const summary = await importDataAction(
+			JSON.stringify({
+				weights: [
+					{
+						date: "2026-04-20",
+						weightLbs: 205.4,
+						note: "after trip",
+					},
+				],
+				savedMeals: [
+					{
+						name: "Lunch Prep",
+						items: [
+							{
+								foodName: "Chicken Fajita Bowl",
+								foodBrand: "Torchys",
+								servings: 2,
+							},
+							{
+								foodName: "Missing Food",
+								servings: 1,
+							},
+						],
+					},
+				],
+			}),
+		);
+
+		expect(summary).toEqual({
+			foods: 0,
+			weights: 1,
+			savedMeals: 1,
+			mealLogs: 0,
+		});
+		expect(insertWeightValues).toHaveBeenCalledWith({
+			userId: "user-1",
+			date: "2026-04-20",
+			weightLbs: "205.4",
+			note: "after trip",
+		});
+		expect(savedMealValues).toHaveBeenCalledWith({
+			userId: "user-1",
+			name: "Lunch Prep",
+		});
+		expect(savedMealItemsValues).toHaveBeenCalledWith([
+			{
+				savedMealId: "saved-meal-1",
+				foodItemId: "food-db-1",
+				servings: "2",
+				sortOrder: 0,
+			},
+		]);
+		expect(revalidatePath).toHaveBeenCalledWith("/weight");
+		expect(revalidatePath).toHaveBeenCalledWith("/meals");
+	});
 });

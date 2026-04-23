@@ -22,6 +22,15 @@ This repo uses a modern Next.js release with breaking changes from older version
 - Package manager: `pnpm`
 - Formatter/linter: Biome with tabs and double quotes
 
+## Shared Helpers
+
+- Prefer existing shared helpers before introducing new local duplicates:
+- `lib/app-page.ts` for common authenticated page context (`session`, `userId`, `today`)
+- `lib/meal-log.ts` for meal-log upsert, meal snapshot helpers, and day revalidation
+- `lib/form.ts` for shared required-number parsing
+- `lib/app-types.ts` for shared meal/food view types
+- The repo currently uses standard-library date helpers in `lib/date.ts`; `date-fns` and `react-hook-form` are not part of the active app surface
+
 ## Project Rules
 
 1. Use `proxy.ts` rather than `middleware.ts`.

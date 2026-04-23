@@ -249,8 +249,6 @@ type FoodInput = z.infer<typeof FoodSchema>;
 
 **Implementation note:** these modal flows used to rely on the native `<dialog>` API and `showModal()`. We replaced them with controlled overlay modals because the native dialog lifecycle was unstable across our browser testing path.
 
-`react-hook-form` is installed but not currently used by the live forms.
-
 ### Charts: Recharts
 
 **What it is:** a React charting library built on D3 primitives. You get components like `<LineChart>`, `<Line>`, `<Tooltip>`, and they render into an SVG.
@@ -259,14 +257,12 @@ type FoodInput = z.infer<typeof FoodSchema>;
 
 Only imported inside client components (`components/weight-view.tsx`, `components/stats-view.tsx`) — Recharts uses browser APIs and can't render server-side.
 
-### Dates: date-fns and Intl
+### Dates: Intl and Small Helpers
 
-We deliberately avoid Moment.js (huge, mutable) and keep most date work in the standard library. `lib/date.ts` has a few small helpers:
+We deliberately avoid Moment.js (huge, mutable) and keep date work in the standard library plus a few focused helpers in `lib/date.ts`:
 - `todayInTz(tz)` uses `Intl.DateTimeFormat('en-CA', { timeZone })` to get a `YYYY-MM-DD` for the user's stored timezone. This is critical — "today" for a user in LA at 11pm UTC should still be March 4, not March 5.
 - `addDays(date, delta)` operates on the ISO string.
 - `formatFriendlyDate` returns "Today" / "Yesterday" / a localized weekday.
-
-`date-fns` is available for anything we need beyond that (tree-shakable, only the functions you import).
 
 ### PWA: Serwist
 

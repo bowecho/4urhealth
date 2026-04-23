@@ -1,7 +1,10 @@
 "use client";
-import { type FormEvent, useEffect, useId, useState } from "react";
+import { type FormEvent, useId, useState } from "react";
 import type { FoodInput } from "@/app/(app)/foods/schema";
+import { ModalShell } from "@/components/modal-shell";
 import { SteppableNumberInput } from "@/components/steppable-number-input";
+import { parseRequiredNumber } from "@/lib/form";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 export type FoodDialogInitial = {
 	name: string;
@@ -17,13 +20,6 @@ export type FoodDialogInitial = {
 const INPUT =
 	"theme-input w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100 dark:focus:ring-zinc-100";
 const LABEL = "block text-xs font-medium mb-1 text-zinc-600 dark:text-zinc-400";
-
-function parseRequiredNumber(value: string, label: string) {
-	if (value.trim() === "") throw new Error(`${label} is required`);
-	const parsed = Number(value);
-	if (!Number.isFinite(parsed)) throw new Error(`${label} is invalid`);
-	return parsed;
-}
 
 export function FoodDialog({
 	initial,
@@ -48,6 +44,53 @@ export function FoodDialog({
 		label?: string;
 	};
 }) {
+	useEscapeKey(onCancel);
+
+	const form = (
+		<FoodDialogForm
+			initial={initial}
+			onSubmit={onSubmit}
+			onCancel={onCancel}
+			title={title}
+			description={description}
+			submitLabel={submitLabel}
+			servingsField={servingsField}
+			className={
+				embedded
+					? "space-y-4"
+					: "theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
+			}
+		/>
+	);
+
+	if (embedded) return form;
+
+	return <ModalShell onClose={onCancel}>{form}</ModalShell>;
+}
+
+function FoodDialogForm({
+	initial,
+	onSubmit,
+	onCancel,
+	title,
+	description,
+	submitLabel,
+	servingsField,
+	className,
+}: {
+	initial: FoodDialogInitial | null;
+	onSubmit: (input: FoodInput) => Promise<void>;
+	onCancel: () => void;
+	title?: string;
+	description?: string;
+	submitLabel?: string;
+	servingsField?: {
+		value: string;
+		onChange: (value: string) => void;
+		label?: string;
+	};
+	className: string;
+}) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [brand, setBrand] = useState(initial?.brand ?? "");
 	const [servingSize, setServingSize] = useState(
@@ -67,15 +110,6 @@ export function FoodDialog({
 	const proteinId = useId();
 	const fatId = useId();
 	const carbsId = useId();
-
-	useEffect(() => {
-		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === "Escape") onCancel();
-		}
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [onCancel]);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -110,15 +144,8 @@ export function FoodDialog({
 		}
 	}
 
-	const form = (
-		<form
-			onSubmit={handleSubmit}
-			className={
-				embedded
-					? "space-y-4"
-					: "theme-surface-strong relative w-[95vw] max-w-md rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4"
-			}
-		>
+	return (
+		<form onSubmit={handleSubmit} className={className}>
 			<h2 className="text-lg font-semibold">
 				{title ?? (initial ? "Edit food" : "New food")}
 			</h2>
@@ -277,19 +304,5 @@ export function FoodDialog({
 				</button>
 			</div>
 		</form>
-	);
-
-	if (embedded) return form;
-
-	return (
-		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
-			<button
-				type="button"
-				aria-label="Close dialog"
-				className="absolute inset-0 bg-black/40"
-				onClick={onCancel}
-			/>
-			{form}
-		</div>
 	);
 }

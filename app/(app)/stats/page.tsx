@@ -2,18 +2,15 @@ import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import { StatsView } from "@/components/stats-view";
 import { db } from "@/db";
 import { mealLog, mealLogItem, user, weightLog } from "@/db/schema";
-import { requireSession } from "@/lib/auth-server";
-import { addDays, todayInTz } from "@/lib/date";
+import { requireAppPageContext } from "@/lib/app-page";
+import { addDays } from "@/lib/date";
 
 type SP = { range?: string };
 
 export default async function StatsPage(props: { searchParams: Promise<SP> }) {
 	const sp = await props.searchParams;
 	const range = sp.range === "month" ? "month" : "week";
-	const session = await requireSession();
-	const userId = session.user.id;
-	const tz = session.user.timezone || "UTC";
-	const today = todayInTz(tz);
+	const { today, userId } = await requireAppPageContext();
 	const days = range === "month" ? 30 : 7;
 	const start = addDays(today, -(days - 1));
 

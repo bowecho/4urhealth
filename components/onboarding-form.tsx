@@ -3,6 +3,7 @@ import { unstable_rethrow } from "next/navigation";
 import { type FormEvent, useId, useMemo, useState, useTransition } from "react";
 import { saveOnboardingAction } from "@/app/onboarding/actions";
 import { SteppableNumberInput } from "@/components/steppable-number-input";
+import { parseRequiredNumber } from "@/lib/form";
 import {
 	ACTIVITY_LABELS,
 	type ActivityLevel,
@@ -34,13 +35,6 @@ const ACTIVITY_OPTIONS: ActivityLevel[] = [
 ];
 
 type Step = "profile" | "plan";
-
-function parseRequiredNumber(value: string, label: string) {
-	if (value.trim() === "") throw new Error(`${label} is required`);
-	const parsed = Number(value);
-	if (!Number.isFinite(parsed)) throw new Error(`${label} is invalid`);
-	return parsed;
-}
 
 export function OnboardingForm() {
 	const [step, setStep] = useState<Step>("profile");

@@ -7,7 +7,7 @@ export const THEME_COLORS = {
 
 export type ThemePreference = "light" | "dark";
 
-export function isThemePreference(
+function isThemePreference(
 	value: string | null | undefined,
 ): value is ThemePreference {
 	return value === "light" || value === "dark";

@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
 	createSavedMealAction,
 	updateSavedMealAction,
 } from "@/app/(app)/meals/actions";
-import type { FoodOption } from "@/components/day-view";
-import type { SavedMealDetail } from "@/components/meals-view";
+import { ModalShell } from "@/components/modal-shell";
 import { SteppableNumberInput } from "@/components/steppable-number-input";
+import type { FoodOption, SavedMealDetail } from "@/lib/app-types";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 type DraftItem = {
 	key: string;
@@ -40,15 +41,7 @@ export function SavedMealBuilder({
 	const [query, setQuery] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [pending, startTransition] = useTransition();
-
-	useEffect(() => {
-		function handleKeyDown(event: KeyboardEvent) {
-			if (event.key === "Escape") onClose();
-		}
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [onClose]);
+	useEscapeKey(onClose);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -139,13 +132,7 @@ export function SavedMealBuilder({
 	);
 
 	return (
-		<div className="fixed inset-0 z-10 flex items-center justify-center p-4">
-			<button
-				type="button"
-				aria-label="Close dialog"
-				className="absolute inset-0 bg-black/40"
-				onClick={onClose}
-			/>
+		<ModalShell onClose={onClose}>
 			<div className="theme-surface-strong relative w-[95vw] max-w-lg rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-5 space-y-4 max-h-[85vh] overflow-y-auto">
 				<h2 className="text-lg font-semibold">
 					{initial ? "Edit saved meal" : "New saved meal"}
@@ -264,6 +251,6 @@ export function SavedMealBuilder({
 					</button>
 				</div>
 			</div>
-		</div>
+		</ModalShell>
 	);
 }

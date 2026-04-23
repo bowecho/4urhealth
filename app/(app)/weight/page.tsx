@@ -2,16 +2,13 @@ import { and, asc, eq, gte } from "drizzle-orm";
 import { WeightView } from "@/components/weight-view";
 import { db } from "@/db";
 import { weightLog } from "@/db/schema";
-import { requireSession } from "@/lib/auth-server";
-import { addDays, todayInTz } from "@/lib/date";
+import { requireAppPageContext } from "@/lib/app-page";
+import { addDays } from "@/lib/date";
 
 export default async function WeightPage() {
-	const session = await requireSession();
-	const tz = session.user.timezone || "UTC";
-	const today = todayInTz(tz);
+	const { today, userId } = await requireAppPageContext();
 	const start = addDays(today, -365);
 
-	const userId = session.user.id;
 	const rows = await db
 		.select({
 			date: weightLog.date,

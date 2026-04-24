@@ -192,6 +192,28 @@ describe("settings actions", () => {
 		await expect(importDataAction("not-json")).rejects.toThrow("Invalid JSON");
 	});
 
+	it("rejects import payloads above the raw size cap", async () => {
+		await expect(
+			importDataAction(" ".repeat(2 * 1024 * 1024 + 1)),
+		).rejects.toThrow("Import file is too large");
+	});
+
+	it("rejects import arrays above the configured count caps", async () => {
+		const tooManyFoods = Array.from({ length: 2001 }, (_, index) => ({
+			name: `Food ${index}`,
+			servingSize: 1,
+			servingUnit: "serving",
+			calories: 100,
+			proteinG: 10,
+			fatG: 5,
+			carbsG: 8,
+		}));
+
+		await expect(
+			importDataAction(JSON.stringify({ foods: tooManyFoods })),
+		).rejects.toThrow();
+	});
+
 	it("imports weights and saved meals using existing foods, skipping unresolved items", async () => {
 		db.select.mockReturnValueOnce(
 			makeSelectWhereChain([

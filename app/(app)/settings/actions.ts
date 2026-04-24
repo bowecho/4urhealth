@@ -124,14 +124,21 @@ const MealLogImport = z.object({
 				carbsG: z.number().min(0),
 			}),
 		)
-		.min(1),
+		.min(1)
+		.max(50),
 });
 
+const MAX_IMPORT_JSON_CHARS = 2 * 1024 * 1024;
+const MAX_IMPORT_FOODS = 2000;
+const MAX_IMPORT_WEIGHTS = 5000;
+const MAX_IMPORT_SAVED_MEALS = 500;
+const MAX_IMPORT_MEAL_LOGS = 10000;
+
 const ImportSchema = z.object({
-	foods: z.array(FoodImport).optional(),
-	weights: z.array(WeightImport).optional(),
-	savedMeals: z.array(SavedMealImport).optional(),
-	mealLogs: z.array(MealLogImport).optional(),
+	foods: z.array(FoodImport).max(MAX_IMPORT_FOODS).optional(),
+	weights: z.array(WeightImport).max(MAX_IMPORT_WEIGHTS).optional(),
+	savedMeals: z.array(SavedMealImport).max(MAX_IMPORT_SAVED_MEALS).optional(),
+	mealLogs: z.array(MealLogImport).max(MAX_IMPORT_MEAL_LOGS).optional(),
 });
 
 export type ImportSummary = {
@@ -160,6 +167,10 @@ type FoodReference = {
 };
 
 function parseImportData(rawJson: string) {
+	if (rawJson.length > MAX_IMPORT_JSON_CHARS) {
+		throw new Error("Import file is too large");
+	}
+
 	let parsedInput: unknown;
 	try {
 		parsedInput = JSON.parse(rawJson);

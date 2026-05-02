@@ -59,14 +59,9 @@ export function WeightView({
 	const chartData = useMemo(() => {
 		if (!showMA)
 			return windowed.map((e) => ({ ...e, ma: null as number | null }));
-		const byDate = new Map(windowed.map((e) => [e.date, e.weightLbs]));
-		const dates = windowed.map((e) => e.date);
 		return windowed.map((e, i) => {
 			const start = Math.max(0, i - 6);
-			const slice = dates.slice(start, i + 1);
-			const vals = slice
-				.map((d) => byDate.get(d))
-				.filter((v): v is number => v !== undefined);
+			const vals = windowed.slice(start, i + 1).map((entry) => entry.weightLbs);
 			const ma =
 				vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
 			return { ...e, ma };
@@ -82,14 +77,13 @@ export function WeightView({
 
 	function handleSave() {
 		setError(null);
-		const parsedWeight = parseWeightInput(newWeight);
-		if (!Number.isFinite(parsedWeight)) {
+		if (!Number.isFinite(parsedNewWeight)) {
 			setError("Weight is required");
 			return;
 		}
 		startTransition(async () => {
 			try {
-				await saveWeightAction({ date: newDate, weightLbs: parsedWeight });
+				await saveWeightAction({ date: newDate, weightLbs: parsedNewWeight });
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to save");
 			}

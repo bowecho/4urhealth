@@ -24,7 +24,6 @@ const SaveMealSchema = z.object({
 });
 
 async function assertUserOwnsFoods(userId: string, foodIds: string[]) {
-	if (foodIds.length === 0) return;
 	const found = await db
 		.select({ id: foodItem.id })
 		.from(foodItem)

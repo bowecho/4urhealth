@@ -93,8 +93,6 @@ export async function updateMealItemServingsAction(
 
 	const [row] = await db
 		.select({
-			itemId: mealLogItem.id,
-			foodItemId: mealLogItem.foodItemId,
 			servings: mealLogItem.servings,
 			caloriesSnapshot: mealLogItem.caloriesSnapshot,
 			proteinGSnapshot: mealLogItem.proteinGSnapshot,

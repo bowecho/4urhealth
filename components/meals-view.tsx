@@ -13,8 +13,6 @@ type BuilderState =
 	| { mode: "edit"; meal: SavedMealDetail }
 	| null;
 
-type ApplyState = { meal: SavedMealDetail } | null;
-
 export function MealsView({
 	meals,
 	foods,
@@ -25,7 +23,7 @@ export function MealsView({
 	today: string;
 }) {
 	const [builder, setBuilder] = useState<BuilderState>(null);
-	const [apply, setApply] = useState<ApplyState>(null);
+	const [apply, setApply] = useState<SavedMealDetail | null>(null);
 	const [pending, startTransition] = useTransition();
 
 	function handleArchive(id: string) {
@@ -84,7 +82,7 @@ export function MealsView({
 								<div className="flex gap-1 shrink-0">
 									<button
 										type="button"
-										onClick={() => setApply({ meal: m })}
+										onClick={() => setApply(m)}
 										className="theme-primary-button text-xs px-2 py-1 rounded bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
 									>
 										Log
@@ -129,7 +127,7 @@ export function MealsView({
 			) : null}
 			{apply ? (
 				<ApplyDialog
-					meal={apply.meal}
+					meal={apply}
 					today={today}
 					onClose={() => setApply(null)}
 				/>

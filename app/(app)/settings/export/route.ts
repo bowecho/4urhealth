@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	foodItem,
@@ -82,7 +82,7 @@ export async function GET() {
 				})
 				.from(mealLogItem)
 				.innerJoin(mealLog, eq(mealLog.id, mealLogItem.mealLogId))
-				.where(and(eq(mealLog.userId, userId)))
+				.where(eq(mealLog.userId, userId))
 				.orderBy(asc(mealLogItem.sortOrder)),
 		]);
 

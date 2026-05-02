@@ -37,10 +37,7 @@ export const weightLog = pgTable(
 			.notNull()
 			.defaultNow(),
 	},
-	(t) => [
-		unique("weight_log_user_date_unique").on(t.userId, t.date),
-		index("weight_log_user_date_idx").on(t.userId, t.date),
-	],
+	(t) => [unique("weight_log_user_date_unique").on(t.userId, t.date)],
 );
 
 export const foodItem = pgTable(
@@ -127,7 +124,6 @@ export const mealLog = pgTable(
 	},
 	(t) => [
 		unique("meal_log_user_date_type_unique").on(t.userId, t.date, t.mealType),
-		index("meal_log_user_date_idx").on(t.userId, t.date),
 	],
 );
 

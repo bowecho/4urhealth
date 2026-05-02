@@ -33,15 +33,6 @@ type Profile = {
 	themePreference: ThemePreference | null;
 };
 
-type ParsedSettingsNumbers = {
-	heightIn: number;
-	weightGoalLbsPerWeek: number;
-	targetCalories: number;
-	targetProteinG: number;
-	targetFatG: number;
-	targetCarbsG: number;
-};
-
 const inputCls =
 	"theme-input w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
 
@@ -88,26 +79,17 @@ export function SettingsView({ profile }: { profile: Profile }) {
 		setSaveErr(null);
 		startSave(async () => {
 			try {
-				const parsedNumbers = parseSettingsNumbers({
-					heightIn,
-					weightGoal,
-					targetCalories,
-					targetProteinG,
-					targetFatG,
-					targetCarbsG,
-				});
-
 				await saveProfileAction({
 					name,
 					sex,
 					dateOfBirth,
-					heightIn: parsedNumbers.heightIn,
+					heightIn: parseRequiredNumber(heightIn, "Height"),
 					activityLevel,
-					weightGoalLbsPerWeek: parsedNumbers.weightGoalLbsPerWeek,
-					targetCalories: parsedNumbers.targetCalories,
-					targetProteinG: parsedNumbers.targetProteinG,
-					targetFatG: parsedNumbers.targetFatG,
-					targetCarbsG: parsedNumbers.targetCarbsG,
+					weightGoalLbsPerWeek: parseRequiredNumber(weightGoal, "Goal"),
+					targetCalories: parseRequiredNumber(targetCalories, "Calories"),
+					targetProteinG: parseRequiredNumber(targetProteinG, "Protein"),
+					targetFatG: parseRequiredNumber(targetFatG, "Fat"),
+					targetCarbsG: parseRequiredNumber(targetCarbsG, "Carbs"),
 					timezone,
 					themePreference: resolvedThemePreference,
 				});
@@ -211,24 +193,6 @@ function useSystemThemePreference(): ThemePreference {
 	}, []);
 
 	return systemThemePreference;
-}
-
-function parseSettingsNumbers(values: {
-	heightIn: string;
-	weightGoal: string;
-	targetCalories: string;
-	targetProteinG: string;
-	targetFatG: string;
-	targetCarbsG: string;
-}): ParsedSettingsNumbers {
-	return {
-		heightIn: parseRequiredNumber(values.heightIn, "Height"),
-		weightGoalLbsPerWeek: parseRequiredNumber(values.weightGoal, "Goal"),
-		targetCalories: parseRequiredNumber(values.targetCalories, "Calories"),
-		targetProteinG: parseRequiredNumber(values.targetProteinG, "Protein"),
-		targetFatG: parseRequiredNumber(values.targetFatG, "Fat"),
-		targetCarbsG: parseRequiredNumber(values.targetCarbsG, "Carbs"),
-	};
 }
 
 function buildCalculatedPlan({
@@ -691,7 +655,14 @@ function ImportSection() {
 					e.target.value = "";
 				}}
 			/>
-			<ImportButton inputRef={inputRef} pending={pending} />
+			<button
+				type="button"
+				onClick={() => inputRef.current?.click()}
+				disabled={pending}
+				className="theme-secondary-button inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50"
+			>
+				{pending ? "Importing…" : "Choose JSON file"}
+			</button>
 			{summary ? (
 				<p className="text-sm text-emerald-600">
 					Imported {summary.foods} foods, {summary.weights} weights,{" "}
@@ -700,24 +671,5 @@ function ImportSection() {
 			) : null}
 			{error ? <p className="text-sm text-red-600">{error}</p> : null}
 		</SectionCard>
-	);
-}
-
-function ImportButton({
-	inputRef,
-	pending,
-}: {
-	inputRef: React.RefObject<HTMLInputElement | null>;
-	pending: boolean;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={() => inputRef.current?.click()}
-			disabled={pending}
-			className="theme-secondary-button inline-block rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50"
-		>
-			{pending ? "Importing…" : "Choose JSON file"}
-		</button>
 	);
 }

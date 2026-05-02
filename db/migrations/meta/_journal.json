@@ -15,6 +15,13 @@
 			"when": 1776638525367,
 			"tag": "0001_mean_marvel_apes",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1777695210398,
+			"tag": "0002_drop_redundant_indexes",
+			"breakpoints": true
 		}
 	]
 }

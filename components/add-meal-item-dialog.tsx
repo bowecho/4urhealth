@@ -89,9 +89,7 @@ export function AddMealItemDialog({
 	}
 
 	async function handleCreateOneTimeFood(input: FoodInput) {
-		const parsedServings =
-			servings.trim() === "" ? Number.NaN : Number(servings);
-		if (!Number.isFinite(parsedServings) || parsedServings < 0.01) {
+		if (!validServings) {
 			throw new Error("Servings must be at least 0.01");
 		}
 		await addOneTimeMealItemAction({
